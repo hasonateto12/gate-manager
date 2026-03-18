@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
-
+    "start": "cd backend && node server.js"
   },
   "keywords": [],
   "author": "",
