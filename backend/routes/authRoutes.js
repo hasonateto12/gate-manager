@@ -18,12 +18,11 @@ router.post("/register", async (req, res) => {
         });
     }
 
-    // check if email or username exists
     const checkSql = `SELECT * FROM users WHERE email = ? OR username = ?`;
 
     db.query(checkSql, [email, username], async (err, result) => {
         if (err) {
-            console.log("REGISTER error:", err);
+            console.log("REGISTER check error:", err);
             return res.status(500).json({
                 error: "Database error",
                 details: err.message
@@ -46,23 +45,17 @@ router.post("/register", async (req, res) => {
 
             db.query(
                 insertSql,
-                [
-                    full_name,
-                    username,
-                    email,
-                    hashedPassword,
-                    role || "user"
-                ],
+                [full_name, username, email, hashedPassword, role || "user"],
                 (insertErr, insertResult) => {
                     if (insertErr) {
-                        console.log("INSERT USER error:", insertErr);
+                        console.log("REGISTER insert error:", insertErr);
                         return res.status(500).json({
                             error: "Failed to register user",
                             details: insertErr.message
                         });
                     }
 
-                    res.status(201).json({
+                    return res.status(201).json({
                         message: "User registered successfully",
                         user: {
                             id: insertResult.insertId,
@@ -74,9 +67,11 @@ router.post("/register", async (req, res) => {
                     });
                 }
             );
-        } catch (e) {
+        } catch (hashError) {
+            console.log("HASH error:", hashError);
             return res.status(500).json({
-                error: "Password hashing failed"
+                error: "Password hashing failed",
+                details: hashError.message
             });
         }
     });
@@ -98,7 +93,7 @@ router.post("/login", (req, res) => {
 
     db.query(sql, [email], async (err, result) => {
         if (err) {
-            console.log("LOGIN error:", err);
+            console.log("LOGIN db error:", err);
             return res.status(500).json({
                 error: "Database error",
                 details: err.message
@@ -113,8 +108,20 @@ router.post("/login", (req, res) => {
 
         const user = result[0];
 
+        console.log("LOGIN USER:", user);
+        console.log("INPUT PASSWORD:", password);
+        console.log("HASH FROM DB:", user.password_hash);
+
         try {
+            if (!user.password_hash) {
+                return res.status(500).json({
+                    error: "password_hash field is missing from database result"
+                });
+            }
+
             const isMatch = await bcrypt.compare(password, user.password_hash);
+
+            console.log("MATCH RESULT:", isMatch);
 
             if (!isMatch) {
                 return res.status(401).json({
@@ -132,7 +139,7 @@ router.post("/login", (req, res) => {
                 { expiresIn: "1d" }
             );
 
-            res.json({
+            return res.status(200).json({
                 message: "Login successful",
                 token,
                 user: {
@@ -143,16 +150,18 @@ router.post("/login", (req, res) => {
                     role: user.role
                 }
             });
-        } catch (e) {
+        } catch (compareError) {
+            console.log("BCRYPT COMPARE ERROR:", compareError);
             return res.status(500).json({
-                error: "Login failed"
+                error: "Login failed",
+                details: compareError.message
             });
         }
     });
 });
 
 /* =========================
-   PROTECTED ROUTE
+   PROTECTED PROFILE
 ========================= */
 router.get("/profile", verifyToken, (req, res) => {
     const sql = `
@@ -176,7 +185,7 @@ router.get("/profile", verifyToken, (req, res) => {
             });
         }
 
-        res.json({
+        return res.status(200).json({
             message: "Protected data",
             user: result[0]
         });
