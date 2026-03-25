@@ -1,27 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const verifyToken = require("../middleware/authMiddleware");
+const verifyAdmin = require("../middleware/roleMiddleware");
 
 /* =========================
    EMPLOYEES API
 ========================= */
 
-/* Get all employees */
-router.get("/", (req, res) => {
+/* Get all employees - any logged-in user */
+router.get("/", verifyToken, (req, res) => {
     const sql = `SELECT * FROM employees ORDER BY id DESC`;
 
     db.query(sql, (err, result) => {
         if (err) {
-            console.log(err);
-            return res.status(500).json({ error: "Failed to fetch employees" });
+            console.log("GET /api/employees error:", err);
+            return res.status(500).json({
+                error: "Failed to fetch employees",
+                details: err.message
+            });
         }
 
         res.json(result);
     });
 });
 
-/* Add new employee */
-router.post("/", (req, res) => {
+/* Add new employee - admin only */
+router.post("/", verifyToken, verifyAdmin, (req, res) => {
     const { full_name, employee_number, department, phone, is_active } = req.body;
 
     if (!full_name) {
@@ -44,8 +49,11 @@ router.post("/", (req, res) => {
         ],
         (err, result) => {
             if (err) {
-                console.log(err);
-                return res.status(500).json({ error: "Failed to add employee" });
+                console.log("POST /api/employees error:", err);
+                return res.status(500).json({
+                    error: "Failed to add employee",
+                    details: err.message
+                });
             }
 
             res.json({
@@ -56,8 +64,8 @@ router.post("/", (req, res) => {
     );
 });
 
-/* Update employee */
-router.put("/:id", (req, res) => {
+/* Update employee - admin only */
+router.put("/:id", verifyToken, verifyAdmin, (req, res) => {
     const { id } = req.params;
     const { full_name, employee_number, department, phone, is_active } = req.body;
 
@@ -83,8 +91,11 @@ router.put("/:id", (req, res) => {
         ],
         (err, result) => {
             if (err) {
-                console.log(err);
-                return res.status(500).json({ error: "Failed to update employee" });
+                console.log(`PUT /api/employees/${id} error:`, err);
+                return res.status(500).json({
+                    error: "Failed to update employee",
+                    details: err.message
+                });
             }
 
             res.json({ message: "Employee updated successfully" });
@@ -92,16 +103,19 @@ router.put("/:id", (req, res) => {
     );
 });
 
-/* Delete employee */
-router.delete("/:id", (req, res) => {
+/* Delete employee - admin only */
+router.delete("/:id", verifyToken, verifyAdmin, (req, res) => {
     const { id } = req.params;
 
     const sql = `DELETE FROM employees WHERE id = ?`;
 
     db.query(sql, [id], (err, result) => {
         if (err) {
-            console.log(err);
-            return res.status(500).json({ error: "Failed to delete employee" });
+            console.log(`DELETE /api/employees/${id} error:`, err);
+            return res.status(500).json({
+                error: "Failed to delete employee",
+                details: err.message
+            });
         }
 
         res.json({ message: "Employee deleted successfully" });

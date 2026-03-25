@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const verifyToken = require("../middleware/authMiddleware");
+const verifyAdmin = require("../middleware/roleMiddleware");
 
 /* =========================
    VEHICLES API
 ========================= */
 
-/* Get all vehicles */
-router.get("/", (req, res) => {
+/* Get all vehicles - any logged-in user */
+router.get("/", verifyToken, (req, res) => {
     const sql = `
         SELECT vehicles.*, employees.full_name AS employee_name
         FROM vehicles
@@ -17,16 +19,19 @@ router.get("/", (req, res) => {
 
     db.query(sql, (err, result) => {
         if (err) {
-            console.log(err);
-            return res.status(500).json({ error: "Failed to fetch vehicles" });
+            console.log("GET /api/vehicles error:", err);
+            return res.status(500).json({
+                error: "Failed to fetch vehicles",
+                details: err.message
+            });
         }
 
         res.json(result);
     });
 });
 
-/* Add new vehicle */
-router.post("/", (req, res) => {
+/* Add new vehicle - admin only */
+router.post("/", verifyToken, verifyAdmin, (req, res) => {
     const { plate_number, vehicle_type, color, employee_id, status } = req.body;
 
     if (!plate_number) {
@@ -49,8 +54,11 @@ router.post("/", (req, res) => {
         ],
         (err, result) => {
             if (err) {
-                console.log(err);
-                return res.status(500).json({ error: "Failed to add vehicle" });
+                console.log("POST /api/vehicles error:", err);
+                return res.status(500).json({
+                    error: "Failed to add vehicle",
+                    details: err.message
+                });
             }
 
             res.json({
@@ -61,8 +69,8 @@ router.post("/", (req, res) => {
     );
 });
 
-/* Update vehicle */
-router.put("/:id", (req, res) => {
+/* Update vehicle - admin only */
+router.put("/:id", verifyToken, verifyAdmin, (req, res) => {
     const { id } = req.params;
     const { plate_number, vehicle_type, color, employee_id, status } = req.body;
 
@@ -88,8 +96,11 @@ router.put("/:id", (req, res) => {
         ],
         (err, result) => {
             if (err) {
-                console.log(err);
-                return res.status(500).json({ error: "Failed to update vehicle" });
+                console.log(`PUT /api/vehicles/${id} error:`, err);
+                return res.status(500).json({
+                    error: "Failed to update vehicle",
+                    details: err.message
+                });
             }
 
             res.json({ message: "Vehicle updated successfully" });
@@ -97,16 +108,19 @@ router.put("/:id", (req, res) => {
     );
 });
 
-/* Delete vehicle */
-router.delete("/:id", (req, res) => {
+/* Delete vehicle - admin only */
+router.delete("/:id", verifyToken, verifyAdmin, (req, res) => {
     const { id } = req.params;
 
     const sql = `DELETE FROM vehicles WHERE id = ?`;
 
     db.query(sql, [id], (err, result) => {
         if (err) {
-            console.log(err);
-            return res.status(500).json({ error: "Failed to delete vehicle" });
+            console.log(`DELETE /api/vehicles/${id} error:`, err);
+            return res.status(500).json({
+                error: "Failed to delete vehicle",
+                details: err.message
+            });
         }
 
         res.json({ message: "Vehicle deleted successfully" });
