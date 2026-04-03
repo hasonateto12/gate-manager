@@ -13,6 +13,7 @@ const employeeRoutes = require("./routes/employeeRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 const entryRequestRoutes = require("./routes/entryRequestRoutes");
 const entryLogRoutes = require("./routes/entryLogRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 // Middlewares
 app.use(cors());
@@ -33,6 +34,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/entry-requests", entryRequestRoutes);
 app.use("/api/entry-logs", entryLogRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 /* =========================
    Start Server
