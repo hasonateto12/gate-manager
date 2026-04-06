@@ -69,7 +69,7 @@ router.post(
                     });
                 }
 
-                res.json({
+                res.status(201).json({
                     message: "Employee added successfully",
                     id: result.insertId,
                 });
@@ -83,6 +83,7 @@ router.put(
     "/:id",
     verifyToken,
     verifyAdmin,
+    employeeIdValidation,
     updateEmployeeValidation,
     handleValidationErrors,
     (req, res) => {
@@ -118,6 +119,12 @@ router.put(
                     });
                 }
 
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({
+                        error: "Employee not found",
+                    });
+                }
+
                 res.json({ message: "Employee updated successfully" });
             }
         );
@@ -139,9 +146,23 @@ router.delete(
         db.query(sql, [id], (err, result) => {
             if (err) {
                 console.log(`DELETE /api/employees/${id} error:`, err);
+
+                if (err.code === "ER_ROW_IS_REFERENCED_2") {
+                    return res.status(409).json({
+                        error: "Cannot delete employee",
+                        details: "This employee is linked to existing vehicles. Delete or reassign the related vehicles first.",
+                    });
+                }
+
                 return res.status(500).json({
                     error: "Failed to delete employee",
                     details: err.message,
+                });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({
+                    error: "Employee not found",
                 });
             }
 
@@ -149,5 +170,4 @@ router.delete(
         });
     }
 );
-
 module.exports = router;
