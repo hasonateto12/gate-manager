@@ -4,6 +4,13 @@ const db = require("../config/db");
 const verifyToken = require("../middleware/authMiddleware");
 const verifyAdmin = require("../middleware/roleMiddleware");
 
+const handleValidationErrors = require("../middleware/validationMiddleware");
+const {
+    employeeIdValidation,
+    createEmployeeValidation,
+    updateEmployeeValidation,
+} = require("../validators/employeeValidators");
+
 /* =========================
    EMPLOYEES API
 ========================= */
@@ -17,7 +24,7 @@ router.get("/", verifyToken, (req, res) => {
             console.log("GET /api/employees error:", err);
             return res.status(500).json({
                 error: "Failed to fetch employees",
-                details: err.message
+                details: err.message,
             });
         }
 
@@ -26,100 +33,121 @@ router.get("/", verifyToken, (req, res) => {
 });
 
 /* Add new employee - admin only */
-router.post("/", verifyToken, verifyAdmin, (req, res) => {
-    const { full_name, employee_number, department, phone, is_active } = req.body;
+router.post(
+    "/",
+    verifyToken,
+    verifyAdmin,
+    createEmployeeValidation,
+    handleValidationErrors,
+    (req, res) => {
+        const { full_name, employee_number, department, phone, is_active } = req.body;
 
-    if (!full_name) {
-        return res.status(400).json({ error: "Full name is required" });
-    }
+        if (!full_name) {
+            return res.status(400).json({ error: "Full name is required" });
+        }
 
-    const sql = `
+        const sql = `
         INSERT INTO employees (full_name, employee_number, department, phone, is_active)
         VALUES (?, ?, ?, ?, ?)
     `;
 
-    db.query(
-        sql,
-        [
-            full_name,
-            employee_number || null,
-            department || null,
-            phone || null,
-            is_active !== undefined ? is_active : true
-        ],
-        (err, result) => {
-            if (err) {
-                console.log("POST /api/employees error:", err);
-                return res.status(500).json({
-                    error: "Failed to add employee",
-                    details: err.message
+        db.query(
+            sql,
+            [
+                full_name,
+                employee_number || null,
+                department || null,
+                phone || null,
+                is_active !== undefined ? is_active : true,
+            ],
+            (err, result) => {
+                if (err) {
+                    console.log("POST /api/employees error:", err);
+                    return res.status(500).json({
+                        error: "Failed to add employee",
+                        details: err.message,
+                    });
+                }
+
+                res.json({
+                    message: "Employee added successfully",
+                    id: result.insertId,
                 });
             }
-
-            res.json({
-                message: "Employee added successfully",
-                id: result.insertId
-            });
-        }
-    );
-});
+        );
+    }
+);
 
 /* Update employee - admin only */
-router.put("/:id", verifyToken, verifyAdmin, (req, res) => {
-    const { id } = req.params;
-    const { full_name, employee_number, department, phone, is_active } = req.body;
+router.put(
+    "/:id",
+    verifyToken,
+    verifyAdmin,
+    updateEmployeeValidation,
+    handleValidationErrors,
+    (req, res) => {
+        const { id } = req.params;
+        const { full_name, employee_number, department, phone, is_active } = req.body;
 
-    if (!full_name) {
-        return res.status(400).json({ error: "Full name is required" });
-    }
+        if (!full_name) {
+            return res.status(400).json({ error: "Full name is required" });
+        }
 
-    const sql = `
+        const sql = `
         UPDATE employees
         SET full_name = ?, employee_number = ?, department = ?, phone = ?, is_active = ?
         WHERE id = ?
     `;
 
-    db.query(
-        sql,
-        [
-            full_name,
-            employee_number || null,
-            department || null,
-            phone || null,
-            is_active !== undefined ? is_active : true,
-            id
-        ],
-        (err, result) => {
+        db.query(
+            sql,
+            [
+                full_name,
+                employee_number || null,
+                department || null,
+                phone || null,
+                is_active !== undefined ? is_active : true,
+                id,
+            ],
+            (err, result) => {
+                if (err) {
+                    console.log(`PUT /api/employees/${id} error:`, err);
+                    return res.status(500).json({
+                        error: "Failed to update employee",
+                        details: err.message,
+                    });
+                }
+
+                res.json({ message: "Employee updated successfully" });
+            }
+        );
+    }
+);
+
+/* Delete employee - admin only */
+router.delete(
+    "/:id",
+    verifyToken,
+    verifyAdmin,
+    employeeIdValidation,
+    handleValidationErrors,
+    (req, res) => {
+        const { id } = req.params;
+
+        const sql = `DELETE FROM employees WHERE id = ?`;
+
+        db.query(sql, [id], (err, result) => {
             if (err) {
-                console.log(`PUT /api/employees/${id} error:`, err);
+                console.log(`DELETE /api/employees/${id} error:`, err);
                 return res.status(500).json({
-                    error: "Failed to update employee",
-                    details: err.message
+                    error: "Failed to delete employee",
+                    details: err.message,
                 });
             }
 
-            res.json({ message: "Employee updated successfully" });
-        }
-    );
-});
-
-/* Delete employee - admin only */
-router.delete("/:id", verifyToken, verifyAdmin, (req, res) => {
-    const { id } = req.params;
-
-    const sql = `DELETE FROM employees WHERE id = ?`;
-
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.log(`DELETE /api/employees/${id} error:`, err);
-            return res.status(500).json({
-                error: "Failed to delete employee",
-                details: err.message
-            });
-        }
-
-        res.json({ message: "Employee deleted successfully" });
-    });
-});
+            res.json({ message: "Employee deleted successfully" });
+        });
+    }
+);
 
 module.exports = router;
