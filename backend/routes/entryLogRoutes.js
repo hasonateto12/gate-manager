@@ -4,28 +4,70 @@ const db = require("../config/db");
 const verifyToken = require("../middleware/authMiddleware");
 const verifyAdmin = require("../middleware/roleMiddleware");
 
+const handleValidationErrors = require("../middleware/validationMiddleware");
+const { getEntryLogsValidation } = require("../validators/entryLogValidators");
+
 /* =========================
    GET LOGS
 ========================= */
-router.get("/", verifyToken, verifyAdmin, (req, res) => {
-    const sql = `
-        SELECT el.*, v.plate_number, e.full_name
-        FROM entry_logs el
-        LEFT JOIN vehicles v ON el.vehicle_id = v.id
-        LEFT JOIN employees e ON el.employee_id = e.id
-        ORDER BY el.id DESC
-    `;
+router.get(
+    "/",
+    verifyToken,
+    verifyAdmin,
+    getEntryLogsValidation,
+    handleValidationErrors,
+    (req, res) => {
+        const { vehicle_id, employee_id, result, from, to } = req.query;
 
-    db.query(sql, (err, result) => {
-        if (err) {
-            console.log("LOGS error:", err);
-            return res.status(500).json({
-                error: "Failed to fetch logs"
-            });
+        let sql = `
+            SELECT el.*, v.plate_number, e.full_name
+            FROM entry_logs el
+                     LEFT JOIN vehicles v ON el.vehicle_id = v.id
+                     LEFT JOIN employees e ON el.employee_id = e.id
+            WHERE 1=1
+        `;
+
+        const params = [];
+
+        if (vehicle_id) {
+            sql += ` AND el.vehicle_id = ?`;
+            params.push(vehicle_id);
         }
 
-        res.json(result);
-    });
-});
+        if (employee_id) {
+            sql += ` AND el.employee_id = ?`;
+            params.push(employee_id);
+        }
+
+        if (result) {
+            sql += ` AND el.result = ?`;
+            params.push(result);
+        }
+
+        if (from) {
+            sql += ` AND el.entry_time >= ?`;
+            params.push(from);
+        }
+
+        if (to) {
+            sql += ` AND el.entry_time <= ?`;
+            params.push(to);
+        }
+
+        sql += ` ORDER BY el.id DESC`;
+
+        db.query(sql, params, (err, resultData) => {
+            if (err) {
+                console.log("LOGS error:", err);
+                return res.status(500).json({
+                    error: "Failed to fetch logs",
+                    details: err.message,
+                });
+            }
+
+            res.json(resultData);
+        });
+    }
+);
 
 module.exports = router;
