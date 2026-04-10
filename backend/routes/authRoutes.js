@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const verifyToken = require("../middleware/authMiddleware");
 
-// ✅ NEW
 const handleValidationErrors = require("../middleware/validationMiddleware");
 const {
     registerValidation,
@@ -18,17 +17,10 @@ const router = express.Router();
 ========================= */
 router.post(
     "/register",
-    registerValidation,          // ✅ NEW
-    handleValidationErrors,      // ✅ NEW
+    registerValidation,
+    handleValidationErrors,
     async (req, res) => {
         const { full_name, username, email, password, role } = req.body;
-
-        // ❗ אפשר להשאיר את זה (לא מפריע)
-        if (!full_name || !username || !email || !password) {
-            return res.status(400).json({
-                error: "full_name, username, email and password are required",
-            });
-        }
 
         const checkSql = `SELECT * FROM users WHERE email = ? OR username = ?`;
 
@@ -51,9 +43,9 @@ router.post(
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 const insertSql = `
-                INSERT INTO users (full_name, username, email, password_hash, role)
-                VALUES (?, ?, ?, ?, ?)
-            `;
+          INSERT INTO users (full_name, username, email, password_hash, role)
+          VALUES (?, ?, ?, ?, ?)
+        `;
 
                 db.query(
                     insertSql,
@@ -95,16 +87,10 @@ router.post(
 ========================= */
 router.post(
     "/login",
-    loginValidation,            // ✅ NEW
-    handleValidationErrors,     // ✅ NEW
+    loginValidation,
+    handleValidationErrors,
     (req, res) => {
         const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({
-                error: "email and password are required",
-            });
-        }
 
         const sql = `SELECT * FROM users WHERE email = ?`;
 
@@ -177,10 +163,10 @@ router.post(
 ========================= */
 router.get("/profile", verifyToken, (req, res) => {
     const sql = `
-        SELECT id, full_name, username, email, role, created_at
-        FROM users
-        WHERE id = ?
-    `;
+    SELECT id, full_name, username, email, role, created_at
+    FROM users
+    WHERE id = ?
+  `;
 
     db.query(sql, [req.user.id], (err, result) => {
         if (err) {
