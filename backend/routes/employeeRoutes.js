@@ -42,10 +42,6 @@ router.post(
     (req, res) => {
         const { full_name, employee_number, department, phone, is_active } = req.body;
 
-        if (!full_name) {
-            return res.status(400).json({ error: "Full name is required" });
-        }
-
         const sql = `
         INSERT INTO employees (full_name, employee_number, department, phone, is_active)
         VALUES (?, ?, ?, ?, ?)
@@ -89,10 +85,6 @@ router.put(
     (req, res) => {
         const { id } = req.params;
         const { full_name, employee_number, department, phone, is_active } = req.body;
-
-        if (!full_name) {
-            return res.status(400).json({ error: "Full name is required" });
-        }
 
         const sql = `
         UPDATE employees
@@ -170,4 +162,5 @@ router.delete(
         });
     }
 );
+
 module.exports = router;
