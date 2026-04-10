@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const morgan = require("morgan");
+const logger = require("./utils/logger");
 const express = require("express");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
@@ -27,6 +29,15 @@ const PORT = process.env.PORT || 5000;
 app.use(securityHeaders);
 app.use("/api", generalLimiter);
 app.use("/api/auth/login", authLimiter);
+
+// Logging middleware
+app.use(
+    morgan("dev", {
+        stream: {
+            write: (message) => logger.info(message.trim()),
+        },
+    })
+);
 
 // Middlewares
 app.use(cors());
@@ -64,7 +75,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-    console.error("Global error:", err);
+    logger.error(`Global error: ${err.message}`);
 
     res.status(err.status || 500).json({
         error: err.message || "Internal server error",
