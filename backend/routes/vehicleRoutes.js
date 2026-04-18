@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 const verifyToken = require("../middleware/authMiddleware");
 const verifyAdmin = require("../middleware/roleMiddleware");
+console.log("HIT VEHICLES GET");
 
 const handleValidationErrors = require("../middleware/validationMiddleware");
 const {
@@ -46,10 +47,6 @@ router.post(
     handleValidationErrors,
     (req, res) => {
         const { plate_number, vehicle_type, color, employee_id, status } = req.body;
-
-        if (!plate_number) {
-            return res.status(400).json({ error: "Plate number is required" });
-        }
 
         const sql = `
         INSERT INTO vehicles (plate_number, vehicle_type, color, employee_id, status)
@@ -102,10 +99,6 @@ router.put(
     (req, res) => {
         const { id } = req.params;
         const { plate_number, vehicle_type, color, employee_id, status } = req.body;
-
-        if (!plate_number) {
-            return res.status(400).json({ error: "Plate number is required" });
-        }
 
         const sql = `
         UPDATE vehicles

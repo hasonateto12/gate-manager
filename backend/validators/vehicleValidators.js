@@ -10,8 +10,7 @@ const vehicleIdValidation = [
 
 const createVehicleValidation = [
     body("employee_id")
-        .notEmpty()
-        .withMessage("Employee ID is required")
+        .optional({ values: "falsy" })
         .isInt({ min: 1 })
         .withMessage("Employee ID must be a positive integer"),
 
@@ -19,26 +18,20 @@ const createVehicleValidation = [
         .trim()
         .notEmpty()
         .withMessage("Plate number is required")
-        .isLength({ min: 2, max: 20 })
-        .withMessage("Plate number must be between 2 and 20 characters"),
+        .isLength({ min: 2, max: 20 }),
 
     body("vehicle_type")
         .optional({ values: "falsy" })
-        .trim()
-        .isLength({ min: 2, max: 50 })
-        .withMessage("Vehicle type must be between 2 and 50 characters"),
+        .trim(),
 
     body("color")
         .optional({ values: "falsy" })
-        .trim()
-        .isLength({ min: 2, max: 30 })
-        .withMessage("Color must be between 2 and 30 characters"),
+        .trim(),
 ];
 
 const updateVehicleValidation = [
     body("employee_id")
-        .notEmpty()
-        .withMessage("Employee ID is required")
+        .optional({ values: "falsy" })
         .isInt({ min: 1 })
         .withMessage("Employee ID must be a positive integer"),
 
@@ -46,20 +39,15 @@ const updateVehicleValidation = [
         .trim()
         .notEmpty()
         .withMessage("Plate number is required")
-        .isLength({ min: 2, max: 20 })
-        .withMessage("Plate number must be between 2 and 20 characters"),
+        .isLength({ min: 2, max: 20 }),
 
     body("vehicle_type")
         .optional({ values: "falsy" })
-        .trim()
-        .isLength({ min: 2, max: 50 })
-        .withMessage("Vehicle type must be between 2 and 50 characters"),
+        .trim(),
 
     body("color")
         .optional({ values: "falsy" })
-        .trim()
-        .isLength({ min: 2, max: 30 })
-        .withMessage("Color must be between 2 and 30 characters"),
+        .trim(),
 ];
 
 module.exports = {
