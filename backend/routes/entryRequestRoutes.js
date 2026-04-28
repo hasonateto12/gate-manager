@@ -22,12 +22,6 @@ router.post(
     (req, res) => {
         const { vehicle_id, notes } = req.body;
 
-        if (!vehicle_id) {
-            return res.status(400).json({
-                error: "vehicle_id is required",
-            });
-        }
-
         const sql = `
         INSERT INTO entry_requests (vehicle_id, request_time, status, notes)
         VALUES (?, NOW(), 'pending', ?)
@@ -94,12 +88,6 @@ router.put(
         const { id } = req.params;
         const { status, rejection_reason } = req.body;
 
-        if (!["approved", "rejected"].includes(status)) {
-            return res.status(400).json({
-                error: "status must be approved or rejected",
-            });
-        }
-
         const sql = `
         UPDATE entry_requests
         SET status = ?, approved_by = ?, rejection_reason = ?
@@ -108,12 +96,7 @@ router.put(
 
         db.query(
             sql,
-            [
-                status,
-                req.user.id,
-                rejection_reason || null,
-                id,
-            ],
+            [status, req.user.id, rejection_reason || null, id],
             (err, result) => {
                 if (err) {
                     console.log("UPDATE STATUS error:", err);
