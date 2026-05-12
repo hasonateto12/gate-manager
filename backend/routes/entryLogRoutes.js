@@ -20,12 +20,12 @@ router.get(
         const { vehicle_id, employee_id, result, from, to } = req.query;
 
         let sql = `
-            SELECT el.*, v.plate_number, e.full_name
-            FROM entry_logs el
-                     LEFT JOIN vehicles v ON el.vehicle_id = v.id
-                     LEFT JOIN employees e ON el.employee_id = e.id
-            WHERE 1=1
-        `;
+      SELECT el.*, v.plate_number, e.full_name
+      FROM entry_logs el
+      LEFT JOIN vehicles v ON el.vehicle_id = v.id
+      LEFT JOIN employees e ON el.employee_id = e.id
+      WHERE 1=1
+    `;
 
         const params = [];
 
@@ -59,6 +59,7 @@ router.get(
         db.query(sql, params, (err, resultData) => {
             if (err) {
                 console.log("LOGS error:", err);
+
                 return res.status(500).json({
                     error: "Failed to fetch logs",
                     details: err.message,
