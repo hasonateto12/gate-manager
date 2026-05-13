@@ -205,29 +205,78 @@ const swaggerDocument = {
 
             Vehicle: {
                 type: 'object',
+
                 properties: {
-                    id: { type: 'integer', example: 1 },
-                    employee_id: { type: 'integer', example: 3 },
-                    plate_number: { type: 'string', example: '12-345-67' },
-                    vehicle_type: { type: 'string', example: 'Private' },
-                    color: { type: 'string', example: 'White' },
-                    employee_name: { type: 'string', example: 'Ali Omari' },
+                    id: {
+                        type: 'integer',
+                        example: 31,
+                    },
+
+                    plate_number: {
+                        type: 'string',
+                        example: '14588',
+                    },
+
+                    vehicle_type: {
+                        type: 'string',
+                        example: 'Private',
+                    },
+
+                    color: {
+                        type: 'string',
+                        example: 'White',
+                    },
+
+                    employee_id: {
+                        type: 'integer',
+                        nullable: true,
+                        example: 33,
+                    },
+
+                    status: {
+                        type: 'string',
+                        example: 'approved',
+                    },
+
                     created_at: {
                         type: 'string',
                         format: 'date-time',
-                        example: '2026-04-06T10:00:00Z',
+                        example: '2026-04-08T05:15:29Z',
                     },
                 },
             },
 
             VehicleInput: {
                 type: 'object',
-                required: ['employee_id', 'plate_number'],
+
+                required: ['plate_number'],
+
                 properties: {
-                    employee_id: { type: 'integer', example: 3 },
-                    plate_number: { type: 'string', example: '12-345-67' },
-                    vehicle_type: { type: 'string', example: 'Private' },
-                    color: { type: 'string', example: 'White' },
+                    plate_number: {
+                        type: 'string',
+                        example: '14588',
+                    },
+
+                    vehicle_type: {
+                        type: 'string',
+                        example: 'Private',
+                    },
+
+                    color: {
+                        type: 'string',
+                        example: 'White',
+                    },
+
+                    employee_id: {
+                        type: 'integer',
+                        nullable: true,
+                        example: 33,
+                    },
+
+                    status: {
+                        type: 'string',
+                        example: 'approved',
+                    },
                 },
             },
 
