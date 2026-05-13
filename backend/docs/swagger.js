@@ -364,17 +364,52 @@ const swaggerDocument = {
 
             EntryLog: {
                 type: 'object',
+
                 properties: {
-                    id: { type: 'integer', example: 1 },
-                    employee_id: { type: 'integer', example: 3 },
-                    vehicle_id: { type: 'integer', example: 4 },
-                    action: { type: 'string', example: 'entry' },
-                    log_time: {
+                    id: {
+                        type: 'integer',
+                        example: 3,
+                    },
+
+                    vehicle_id: {
+                        type: 'integer',
+                        example: 31,
+                    },
+
+                    employee_id: {
+                        type: 'integer',
+                        nullable: true,
+                        example: 33,
+                    },
+
+                    entry_time: {
                         type: 'string',
                         format: 'date-time',
-                        example: '2026-04-06T08:30:00Z',
+                        example: '2026-05-13T03:27:25Z',
                     },
-                    notes: { type: 'string', example: 'Gate opened successfully' },
+
+                    exit_time: {
+                        type: 'string',
+                        nullable: true,
+                        format: 'date-time',
+                        example: null,
+                    },
+
+                    result: {
+                        type: 'string',
+                        example: 'approved',
+                    },
+
+                    handled_by: {
+                        type: 'integer',
+                        example: 5,
+                    },
+
+                    notes: {
+                        type: 'string',
+                        nullable: true,
+                        example: 'Morning access request',
+                    },
                 },
             },
 
@@ -891,14 +926,54 @@ const swaggerDocument = {
 
         '/api/entry-logs': {
             get: {
-                tags: ['Entry Logs'],
-                summary: 'Get all entry logs',
-                security: [{ bearerAuth: [] }],
-                responses: {
-                    200: {
-                        description: 'Entry logs list',
+                parameters: [
+                    {
+                        in: 'query',
+                        name: 'vehicle_id',
+                        schema: {
+                            type: 'integer',
+                        },
+                        description: 'Filter logs by vehicle ID',
                     },
-                },
+
+                    {
+                        in: 'query',
+                        name: 'employee_id',
+                        schema: {
+                            type: 'integer',
+                        },
+                        description: 'Filter logs by employee ID',
+                    },
+
+                    {
+                        in: 'query',
+                        name: 'result',
+                        schema: {
+                            type: 'string',
+                        },
+                        description: 'Filter logs by result status',
+                    },
+
+                    {
+                        in: 'query',
+                        name: 'from',
+                        schema: {
+                            type: 'string',
+                            format: 'date',
+                        },
+                        description: 'Filter logs from date',
+                    },
+
+                    {
+                        in: 'query',
+                        name: 'to',
+                        schema: {
+                            type: 'string',
+                            format: 'date',
+                        },
+                        description: 'Filter logs to date',
+                    },
+                ],
             },
             post: {
                 tags: ['Entry Logs'],
