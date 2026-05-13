@@ -132,13 +132,36 @@ const swaggerDocument = {
                 type: 'object',
                 properties: {
                     id: { type: 'integer', example: 1 },
-                    full_name: { type: 'string', example: 'Ali Omari' },
-                    phone: { type: 'string', example: '0501234567' },
-                    role: { type: 'string', example: 'Guard' },
+
+                    full_name: {
+                        type: 'string',
+                        example: 'Ali Omari',
+                    },
+
+                    employee_number: {
+                        type: 'string',
+                        example: 'EMP1001',
+                    },
+
+                    department: {
+                        type: 'string',
+                        example: 'Security',
+                    },
+
+                    phone: {
+                        type: 'string',
+                        example: '0501234567',
+                    },
+
+                    is_active: {
+                        type: 'boolean',
+                        example: true,
+                    },
+
                     created_at: {
                         type: 'string',
                         format: 'date-time',
-                        example: '2026-04-06T10:00:00Z',
+                        example: '2026-04-08T05:15:01Z',
                     },
                 },
             },
