@@ -181,3 +181,173 @@ Fields:
 
 ```bash
 git clone https://github.com/hasonateto12/gate-manager.git
+
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+## Create `.env`
+
+```env
+PORT=5000
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=gate_manager
+
+JWT_SECRET=your_secret_key
+```
+
+---
+
+## Run the server
+
+```bash
+npm start
+```
+
+Server will run on:
+
+```bash
+http://localhost:5000
+```
+
+---
+
+# Swagger API Documentation 📚
+
+Swagger UI:
+
+```bash
+http://localhost:5000/api-docs
+```
+
+---
+
+# Main API Routes 🚀
+
+## Auth
+
+- POST `/api/auth/register`
+- POST `/api/auth/login`
+- GET `/api/auth/profile`
+
+---
+
+## Employees
+
+- GET `/api/employees`
+- POST `/api/employees`
+- PUT `/api/employees/:id`
+- DELETE `/api/employees/:id`
+
+---
+
+## Vehicles
+
+- GET `/api/vehicles`
+- POST `/api/vehicles`
+- PUT `/api/vehicles/:id`
+- DELETE `/api/vehicles/:id`
+
+---
+
+## Entry Requests
+
+- GET `/api/entry-requests`
+- POST `/api/entry-requests`
+- PUT `/api/entry-requests/:id/status`
+
+---
+
+## Entry Logs
+
+- GET `/api/entry-logs`
+
+Supports filtering:
+
+- `vehicle_id`
+- `employee_id`
+- `result`
+- `from`
+- `to`
+
+---
+
+# Example Workflow 🔄
+
+## Step 1
+
+Create entry request:
+
+```json
+{
+  "vehicle_id": 31,
+  "notes": "Morning access request"
+}
+```
+
+---
+
+## Step 2
+
+Admin approves request:
+
+```json
+{
+  "status": "approved"
+}
+```
+
+---
+
+## Step 3
+
+System automatically creates an entry log.
+
+---
+
+# Security 🔐
+
+The project includes:
+
+- JWT authentication
+- Role-based authorization
+- Helmet security middleware
+- Request validation
+- Rate limiting
+- Protected routes
+- Error handling
+
+---
+
+# Logging 📄
+
+The system logs:
+
+- API requests
+- Errors
+- Server activity
+
+Using:
+
+- Morgan
+- Winston
+
+---
+
+# Author 👨‍💻
+
+**Teto Hassuna**
+
+Software Engineering Student  
+Final Project — Smart Gate Management System
+
+GitHub:  
+https://github.com/hasonateto12
