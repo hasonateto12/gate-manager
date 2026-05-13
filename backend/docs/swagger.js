@@ -282,27 +282,83 @@ const swaggerDocument = {
 
             EntryRequest: {
                 type: 'object',
+
                 properties: {
-                    id: { type: 'integer', example: 1 },
-                    employee_id: { type: 'integer', example: 3 },
-                    vehicle_id: { type: 'integer', example: 4 },
-                    status: { type: 'string', example: 'pending' },
-                    notes: { type: 'string', example: 'Morning shift access request' },
-                    request_date: {
+                    id: {
+                        type: 'integer',
+                        example: 33,
+                    },
+
+                    vehicle_id: {
+                        type: 'integer',
+                        example: 31,
+                    },
+
+                    request_time: {
                         type: 'string',
                         format: 'date-time',
-                        example: '2026-04-06T08:00:00Z',
+                        example: '2026-05-13T03:19:03Z',
+                    },
+
+                    status: {
+                        type: 'string',
+                        example: 'approved',
+                    },
+
+                    approved_by: {
+                        type: 'integer',
+                        nullable: true,
+                        example: 5,
+                    },
+
+                    rejection_reason: {
+                        type: 'string',
+                        nullable: true,
+                        example: null,
+                    },
+
+                    notes: {
+                        type: 'string',
+                        nullable: true,
+                        example: 'Morning access request',
                     },
                 },
             },
 
             EntryRequestInput: {
                 type: 'object',
+
+                required: ['vehicle_id'],
+
                 properties: {
-                    employee_id: { type: 'integer', example: 3 },
-                    vehicle_id: { type: 'integer', example: 4 },
-                    status: { type: 'string', example: 'pending' },
-                    notes: { type: 'string', example: 'Morning shift access request' },
+                    vehicle_id: {
+                        type: 'integer',
+                        example: 31,
+                    },
+
+                    notes: {
+                        type: 'string',
+                        example: 'Morning access request',
+                    },
+                },
+            },
+
+            EntryRequestStatusUpdate: {
+                type: 'object',
+
+                required: ['status'],
+
+                properties: {
+                    status: {
+                        type: 'string',
+                        example: 'approved',
+                    },
+
+                    rejection_reason: {
+                        type: 'string',
+                        nullable: true,
+                        example: 'Missing approval documents',
+                    },
                 },
             },
 
@@ -774,34 +830,14 @@ const swaggerDocument = {
             },
         },
 
-        '/api/entry-requests/{id}': {
-            get: {
-                tags: ['Entry Requests'],
-                summary: 'Get entry request by ID',
-                security: [{ bearerAuth: [] }],
-                parameters: [
-                    {
-                        in: 'path',
-                        name: 'id',
-                        required: true,
-                        schema: {
-                            type: 'integer',
-                        },
-                    },
-                ],
-                responses: {
-                    200: {
-                        description: 'Entry request found',
-                    },
-                    404: {
-                        description: 'Entry request not found',
-                    },
-                },
-            },
+        '/api/entry-requests/{id}/status': {
             put: {
                 tags: ['Entry Requests'],
-                summary: 'Update entry request',
+
+                summary: 'Approve or reject an entry request',
+
                 security: [{ bearerAuth: [] }],
+
                 parameters: [
                     {
                         in: 'path',
@@ -812,45 +848,42 @@ const swaggerDocument = {
                         },
                     },
                 ],
+
                 requestBody: {
                     required: true,
+
                     content: {
                         'application/json': {
                             schema: {
-                                $ref: '#/components/schemas/EntryRequestInput',
+                                $ref: '#/components/schemas/EntryRequestStatusUpdate',
                             },
                         },
                     },
                 },
+
                 responses: {
                     200: {
-                        description: 'Entry request updated successfully',
+                        description: 'Request status updated successfully',
                     },
+
+                    400: {
+                        description: 'Validation error',
+                    },
+
+                    401: {
+                        description: 'Unauthorized',
+                    },
+
+                    403: {
+                        description: 'Admins only',
+                    },
+
                     404: {
-                        description: 'Entry request not found',
+                        description: 'Request not found',
                     },
-                },
-            },
-            delete: {
-                tags: ['Entry Requests'],
-                summary: 'Delete entry request',
-                security: [{ bearerAuth: [] }],
-                parameters: [
-                    {
-                        in: 'path',
-                        name: 'id',
-                        required: true,
-                        schema: {
-                            type: 'integer',
-                        },
-                    },
-                ],
-                responses: {
-                    200: {
-                        description: 'Entry request deleted successfully',
-                    },
-                    404: {
-                        description: 'Entry request not found',
+
+                    500: {
+                        description: 'Server error',
                     },
                 },
             },
