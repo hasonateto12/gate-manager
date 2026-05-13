@@ -5,6 +5,7 @@ const verifyToken = require("../middleware/authMiddleware");
 const verifyAdmin = require("../middleware/roleMiddleware");
 
 const handleValidationErrors = require("../middleware/validationMiddleware");
+
 const {
     entryRequestIdValidation,
     createEntryRequestValidation,
@@ -23,8 +24,8 @@ router.post(
         const { vehicle_id, notes } = req.body;
 
         const sql = `
-        INSERT INTO entry_requests (vehicle_id, request_time, status, notes)
-        VALUES (?, NOW(), 'pending', ?)
+      INSERT INTO entry_requests (vehicle_id, request_time, status, notes)
+      VALUES (?, NOW(), 'pending', ?)
     `;
 
         db.query(sql, [vehicle_id, notes || null], (err, result) => {
@@ -57,11 +58,11 @@ router.post(
 ========================= */
 router.get("/", verifyToken, verifyAdmin, (req, res) => {
     const sql = `
-        SELECT er.*, v.plate_number
-        FROM entry_requests er
-        LEFT JOIN vehicles v ON er.vehicle_id = v.id
-        ORDER BY er.id DESC
-    `;
+    SELECT er.*, v.plate_number
+    FROM entry_requests er
+    LEFT JOIN vehicles v ON er.vehicle_id = v.id
+    ORDER BY er.id DESC
+  `;
 
     db.query(sql, (err, result) => {
         if (err) {
@@ -88,31 +89,95 @@ router.put(
         const { id } = req.params;
         const { status, rejection_reason } = req.body;
 
-        const sql = `
-        UPDATE entry_requests
-        SET status = ?, approved_by = ?, rejection_reason = ?
-        WHERE id = ?
+        // Step 1: update request
+        const updateSql = `
+      UPDATE entry_requests
+      SET status = ?, approved_by = ?, rejection_reason = ?
+      WHERE id = ?
     `;
 
         db.query(
-            sql,
+            updateSql,
             [status, req.user.id, rejection_reason || null, id],
-            (err, result) => {
-                if (err) {
-                    console.log("UPDATE STATUS error:", err);
+            (updateErr, updateResult) => {
+                if (updateErr) {
+                    console.log("UPDATE STATUS error:", updateErr);
+
                     return res.status(500).json({
-                        error: "Failed to update status",
+                        error: "Failed to update request status",
                     });
                 }
 
-                if (result.affectedRows === 0) {
+                if (updateResult.affectedRows === 0) {
                     return res.status(404).json({
                         error: "Request not found",
                     });
                 }
 
-                res.json({
-                    message: `Request ${status}`,
+                // Step 2: get request + vehicle employee
+                const fetchSql = `
+          SELECT 
+            er.vehicle_id,
+            er.notes,
+            v.employee_id
+          FROM entry_requests er
+          LEFT JOIN vehicles v ON er.vehicle_id = v.id
+          WHERE er.id = ?
+        `;
+
+                db.query(fetchSql, [id], (fetchErr, requestData) => {
+                    if (fetchErr) {
+                        console.log("FETCH REQUEST error:", fetchErr);
+
+                        return res.status(500).json({
+                            error: "Failed to fetch request data",
+                        });
+                    }
+
+                    if (requestData.length === 0) {
+                        return res.status(404).json({
+                            error: "Request data not found",
+                        });
+                    }
+
+                    const request = requestData[0];
+
+                    // Step 3: insert log
+                    const logSql = `
+            INSERT INTO entry_logs (
+              vehicle_id,
+              employee_id,
+              entry_time,
+              result,
+              handled_by,
+              notes
+            )
+            VALUES (?, ?, NOW(), ?, ?, ?)
+          `;
+
+                    db.query(
+                        logSql,
+                        [
+                            request.vehicle_id,
+                            request.employee_id || null,
+                            status,
+                            req.user.id,
+                            request.notes || null,
+                        ],
+                        (logErr) => {
+                            if (logErr) {
+                                console.log("LOG INSERT error:", logErr);
+
+                                return res.status(500).json({
+                                    error: "Request updated but failed to create log",
+                                });
+                            }
+
+                            res.json({
+                                message: `Request ${status} and log created successfully`,
+                            });
+                        }
+                    );
                 });
             }
         );
