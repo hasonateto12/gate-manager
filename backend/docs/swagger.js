@@ -2,10 +2,18 @@ const swaggerDocument = {
     openapi: '3.0.3',
     info: {
         title: 'Gate Manager API',
+
         version: '1.0.0',
+
         description:
-            'API documentation for Gate Manager (Smart Gate) - Web Only version built with Node.js, Express and MySQL.',
+            'Gate Manager is a smart gate management system built with Node.js, Express, and MySQL. The system manages employees, vehicles, entry requests, approvals, and access logs with JWT authentication and role-based authorization.',
+
+        contact: {
+            name: 'Teto Hassuna',
+            email: 'hassunateto3@gmail.com',
+        },
     },
+
     servers: [
         {
             url: 'http://localhost:5000',
@@ -13,12 +21,35 @@ const swaggerDocument = {
         },
     ],
     tags: [
-        { name: 'Auth', description: 'Authentication and profile endpoints' },
-        { name: 'Employees', description: 'Employee management' },
-        { name: 'Vehicles', description: 'Vehicle management' },
-        { name: 'Entry Requests', description: 'Entry request management' },
-        { name: 'Entry Logs', description: 'Entry log management' },
-        { name: 'Dashboard', description: 'Dashboard and search endpoints' },
+        {
+            name: 'Auth',
+            description: 'Authentication and user login endpoints',
+        },
+
+        {
+            name: 'Employees',
+            description: 'Employee management endpoints',
+        },
+
+        {
+            name: 'Vehicles',
+            description: 'Vehicle management endpoints',
+        },
+
+        {
+            name: 'Entry Requests',
+            description: 'Vehicle access request workflow endpoints',
+        },
+
+        {
+            name: 'Entry Logs',
+            description: 'Access logs and filtering endpoints',
+        },
+
+        {
+            name: 'Dashboard',
+            description: 'Dashboard statistics and search endpoints',
+        },
     ],
     components: {
         securitySchemes: {
@@ -26,6 +57,7 @@ const swaggerDocument = {
                 type: 'http',
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
+                description: 'Enter JWT Bearer token',
             },
         },
         schemas: {
