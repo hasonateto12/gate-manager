@@ -79,7 +79,7 @@ function LoginPage() {
                 <Typography
                     variant="h4"
                     mb={3}
-                    textAlign="center"
+                    sx={{ textAlign: "center" }}
                 >
                     Gate Manager Login
                 </Typography>
