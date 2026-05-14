@@ -66,6 +66,13 @@ app.use("/api/entry-requests", entryRequestRoutes);
 app.use("/api/entry-logs", entryLogRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
+app.get("/api", (req, res) => {
+    res.json({
+        message: "Gate Manager API Working"
+    });
+});
+
+
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
