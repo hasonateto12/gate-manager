@@ -1,41 +1,94 @@
 import {
 
+    useEffect,
+    useState,
+
+} from "react";
+
+import api from "../api/axios";
+
+import {
+
     Grid,
     Paper,
     Typography,
     Box,
+    CircularProgress,
+    Alert,
 
 } from "@mui/material";
-
-import { useAuth } from "../context/AuthContext";
 
 
 function DashboardPage() {
 
-    const { user } = useAuth();
+    const [stats, setStats] = useState(null);
 
-    const cards = [
+    const [loading, setLoading] = useState(true);
 
-        {
-            title: "עובדים",
-            value: 24,
-        },
+    const [error, setError] = useState("");
 
-        {
-            title: "רכבים",
-            value: 18,
-        },
 
-        {
-            title: "בקשות כניסה",
-            value: 7,
-        },
+    useEffect(() => {
 
-        {
-            title: "כניסות היום",
-            value: 32,
-        },
-    ];
+        fetchStats();
+
+    }, []);
+
+
+    const fetchStats = async () => {
+
+        try {
+
+            setLoading(true);
+
+            const response =
+                await api.get("/dashboard/stats");
+
+            setStats(response.data);
+
+        } catch (error) {
+
+            console.error(error);
+
+            setError("שגיאה בטעינת נתונים");
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+
+
+    if (loading) {
+
+        return (
+
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    mt: 5,
+                }}
+            >
+
+                <CircularProgress />
+
+            </Box>
+        );
+    }
+
+
+    if (error) {
+
+        return (
+
+            <Alert severity="error">
+
+                {error}
+
+            </Alert>
+        );
+    }
 
 
     return (
@@ -44,18 +97,10 @@ function DashboardPage() {
 
             <Typography
                 variant="h4"
-                mb={2}
                 fontWeight="bold"
-            >
-                לוח בקרה
-            </Typography>
-
-
-            <Typography
-                variant="h6"
                 mb={4}
             >
-                שלום {user?.full_name}
+                לוח בקרה
             </Typography>
 
 
@@ -64,43 +109,158 @@ function DashboardPage() {
                 spacing={3}
             >
 
-                {cards.map((card, index) => (
+                {/* TOTAL */}
 
-                    <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
-                        key={index}
+                <Grid
+                    item
+                    xs={12}
+                    md={3}
+                >
+
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            textAlign: "center",
+                        }}
                     >
 
-                        <Paper
-                            elevation={3}
-                            sx={{
-                                p: 3,
-                                borderRadius: 3,
-                            }}
+                        <Typography
+                            variant="h6"
+                            mb={1}
                         >
+                            סך בקשות
+                        </Typography>
 
-                            <Typography
-                                variant="h6"
-                                color="text.secondary"
-                            >
-                                {card.title}
-                            </Typography>
 
-                            <Typography
-                                variant="h3"
-                                fontWeight="bold"
-                                mt={2}
-                            >
-                                {card.value}
-                            </Typography>
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                        >
+                            {stats.total}
+                        </Typography>
 
-                        </Paper>
+                    </Paper>
 
-                    </Grid>
-                ))}
+                </Grid>
+
+
+                {/* PENDING */}
+
+                <Grid
+                    item
+                    xs={12}
+                    md={3}
+                >
+
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            textAlign: "center",
+                            backgroundColor: "#fff8e1",
+                        }}
+                    >
+
+                        <Typography
+                            variant="h6"
+                            mb={1}
+                        >
+                            ממתינות
+                        </Typography>
+
+
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                            color="warning.main"
+                        >
+                            {stats.pending}
+                        </Typography>
+
+                    </Paper>
+
+                </Grid>
+
+
+                {/* APPROVED */}
+
+                <Grid
+                    item
+                    xs={12}
+                    md={3}
+                >
+
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            textAlign: "center",
+                            backgroundColor: "#e8f5e9",
+                        }}
+                    >
+
+                        <Typography
+                            variant="h6"
+                            mb={1}
+                        >
+                            מאושרות
+                        </Typography>
+
+
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                            color="success.main"
+                        >
+                            {stats.approved}
+                        </Typography>
+
+                    </Paper>
+
+                </Grid>
+
+
+                {/* REJECTED */}
+
+                <Grid
+                    item
+                    xs={12}
+                    md={3}
+                >
+
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            textAlign: "center",
+                            backgroundColor: "#ffebee",
+                        }}
+                    >
+
+                        <Typography
+                            variant="h6"
+                            mb={1}
+                        >
+                            נדחו
+                        </Typography>
+
+
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                            color="error.main"
+                        >
+                            {stats.rejected}
+                        </Typography>
+
+                    </Paper>
+
+                </Grid>
 
             </Grid>
 
