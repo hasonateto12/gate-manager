@@ -20,6 +20,7 @@ import {
     CircularProgress,
     Alert,
     Box,
+    TextField,
 
 } from "@mui/material";
 
@@ -31,6 +32,8 @@ function EmployeesPage() {
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState("");
+
+    const [search, setSearch] = useState("");
 
 
     useEffect(() => {
@@ -62,6 +65,23 @@ function EmployeesPage() {
             setLoading(false);
         }
     };
+
+
+    const filteredEmployees = employees.filter((employee) => {
+
+        const fullName =
+            employee.full_name?.toLowerCase() || "";
+
+        const email =
+            employee.email?.toLowerCase() || "";
+
+        return (
+
+            fullName.includes(search.toLowerCase()) ||
+
+            email.includes(search.toLowerCase())
+        );
+    });
 
 
     if (loading) {
@@ -109,6 +129,16 @@ function EmployeesPage() {
             </Typography>
 
 
+            <TextField
+                fullWidth
+                label="חיפוש עובד"
+                variant="outlined"
+                sx={{ mb: 3 }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+            />
+
+
             <TableContainer component={Paper}>
 
                 <Table>
@@ -144,7 +174,7 @@ function EmployeesPage() {
 
                     <TableBody>
 
-                        {employees.map((employee) => (
+                        {filteredEmployees.map((employee) => (
 
                             <TableRow
                                 key={employee.id}
