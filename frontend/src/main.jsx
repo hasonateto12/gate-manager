@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { AuthProvider } from "./context/AuthContext";
 
 import { RouterProvider } from "react-router-dom";
 
@@ -62,7 +63,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
             <ThemeProvider theme={theme}>
 
-                <RouterProvider router={router} />
+                <AuthProvider>
+
+                    <RouterProvider router={router} />
+
+                </AuthProvider>
 
             </ThemeProvider>
 

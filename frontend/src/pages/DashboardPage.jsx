@@ -7,8 +7,12 @@ import {
 
 } from "@mui/material";
 
+import { useAuth } from "../context/AuthContext";
+
 
 function DashboardPage() {
+
+    const { user } = useAuth();
 
     const cards = [
 
@@ -40,10 +44,18 @@ function DashboardPage() {
 
             <Typography
                 variant="h4"
-                mb={4}
+                mb={2}
                 fontWeight="bold"
             >
                 לוח בקרה
+            </Typography>
+
+
+            <Typography
+                variant="h6"
+                mb={4}
+            >
+                שלום {user?.full_name}
             </Typography>
 
 
