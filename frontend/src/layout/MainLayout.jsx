@@ -1,62 +1,153 @@
 import { Outlet, Link } from "react-router-dom";
 
 import {
-    AppBar,
+
+    Box,
+    Drawer,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
     Toolbar,
     Typography,
-    Button,
-    Container,
-    Box,
+    AppBar,
+
 } from "@mui/material";
+
+
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+
+
+const drawerWidth = 240;
+
 
 function MainLayout() {
 
     return (
 
-        <Box>
+        <Box sx={{ display: "flex" }}>
 
-            <AppBar position="static">
+            {/* TOP BAR */}
+
+            <AppBar
+                position="fixed"
+                sx={{
+                    zIndex: 1201,
+                }}
+            >
 
                 <Toolbar>
 
-                    <Typography
-                        variant="h6"
-                        sx={{ flexGrow: 1 }}
-                    >
+                    <Typography variant="h6">
+
                         מערכת ניהול שערים
+
                     </Typography>
-
-                    <Button
-                        color="inherit"
-                        component={Link}
-                        to="/dashboard"
-                    >
-                        לוח בקרה
-                    </Button>
-
-                    <Button
-                        color="inherit"
-                        component={Link}
-                        to="/employees"
-                    >
-                        עובדים
-                    </Button>
-
-                    <Button
-                        color="inherit"
-                        component={Link}
-                        to="/vehicles"
-                    >
-                        רכבים
-                    </Button>
 
                 </Toolbar>
 
             </AppBar>
 
-            <Container sx={{ mt: 4 }}>
+
+            {/* SIDEBAR */}
+
+            <Drawer
+                variant="permanent"
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+
+                    "& .MuiDrawer-paper": {
+                        width: drawerWidth,
+                        boxSizing: "border-box",
+                    },
+                }}
+            >
+
+                <Toolbar />
+
+                <Box sx={{ overflow: "auto" }}>
+
+                    <List>
+
+                        <ListItem disablePadding>
+
+                            <ListItemButton
+                                component={Link}
+                                to="/dashboard"
+                            >
+
+                                <ListItemIcon>
+                                    <DashboardIcon />
+                                </ListItemIcon>
+
+                                <ListItemText primary="לוח בקרה" />
+
+                            </ListItemButton>
+
+                        </ListItem>
+
+
+                        <ListItem disablePadding>
+
+                            <ListItemButton
+                                component={Link}
+                                to="/employees"
+                            >
+
+                                <ListItemIcon>
+                                    <PeopleIcon />
+                                </ListItemIcon>
+
+                                <ListItemText primary="עובדים" />
+
+                            </ListItemButton>
+
+                        </ListItem>
+
+
+                        <ListItem disablePadding>
+
+                            <ListItemButton
+                                component={Link}
+                                to="/vehicles"
+                            >
+
+                                <ListItemIcon>
+                                    <DirectionsCarIcon />
+                                </ListItemIcon>
+
+                                <ListItemText primary="רכבים" />
+
+                            </ListItemButton>
+
+                        </ListItem>
+
+                    </List>
+
+                </Box>
+
+            </Drawer>
+
+
+            {/* PAGE CONTENT */}
+
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: 3,
+                }}
+            >
+
+                <Toolbar />
+
                 <Outlet />
-            </Container>
+
+            </Box>
 
         </Box>
     );
