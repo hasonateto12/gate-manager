@@ -29,10 +29,12 @@ import {
     DialogActions,
     Button,
     Snackbar,
+    Stack,
 
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 
 function EmployeesPage() {
@@ -54,6 +56,20 @@ function EmployeesPage() {
 
         open: false,
         message: "",
+    });
+
+
+    // EDIT STATES
+
+    const [openEditDialog, setOpenEditDialog] =
+        useState(false);
+
+    const [editForm, setEditForm] = useState({
+
+        full_name: "",
+        phone: "",
+        department: "",
+        employee_number: "",
     });
 
 
@@ -87,6 +103,8 @@ function EmployeesPage() {
         }
     };
 
+
+    // DELETE
 
     const handleDeleteClick = (employee) => {
 
@@ -135,22 +153,90 @@ function EmployeesPage() {
     };
 
 
+    // EDIT
+
+    const handleEditClick = (employee) => {
+
+        setSelectedEmployee(employee);
+
+        setEditForm({
+
+            full_name: employee.full_name || "",
+            phone: employee.phone || "",
+            department: employee.department || "",
+            employee_number:
+                employee.employee_number || "",
+        });
+
+        setOpenEditDialog(true);
+    };
+
+
+    const handleEditChange = (e) => {
+
+        setEditForm({
+
+            ...editForm,
+
+            [e.target.name]: e.target.value,
+        });
+    };
+
+
+    const handleUpdateEmployee = async () => {
+
+        try {
+
+            await api.put(
+
+                `/employees/${selectedEmployee.id}`,
+
+                editForm
+            );
+
+            await fetchEmployees();
+
+            setSnackbar({
+
+                open: true,
+                message: "העובד עודכן בהצלחה",
+            });
+
+            setOpenEditDialog(false);
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה בעדכון עובד",
+            });
+        }
+    };
+
+
+    // SEARCH
+
     const filteredEmployees = employees.filter((employee) => {
 
         const fullName =
             employee.full_name?.toLowerCase() || "";
 
-        const email =
-            employee.email?.toLowerCase() || "";
+        const phone =
+            employee.phone?.toLowerCase() || "";
 
         return (
 
             fullName.includes(search.toLowerCase()) ||
 
-            email.includes(search.toLowerCase())
+            phone.includes(search.toLowerCase())
         );
     });
 
+
+    // LOADING
 
     if (loading) {
 
@@ -170,6 +256,8 @@ function EmployeesPage() {
         );
     }
 
+
+    // ERROR
 
     if (error) {
 
@@ -224,15 +312,15 @@ function EmployeesPage() {
                             </TableCell>
 
                             <TableCell>
-                                אימייל
-                            </TableCell>
-
-                            <TableCell>
                                 טלפון
                             </TableCell>
 
                             <TableCell>
-                                תפקיד
+                                מחלקה
+                            </TableCell>
+
+                            <TableCell>
+                                מספר עובד
                             </TableCell>
 
                             <TableCell>
@@ -261,29 +349,48 @@ function EmployeesPage() {
                                 </TableCell>
 
                                 <TableCell>
-                                    {employee.email}
-                                </TableCell>
-
-                                <TableCell>
                                     {employee.phone}
                                 </TableCell>
 
                                 <TableCell>
-                                    {employee.role}
+                                    {employee.department}
+                                </TableCell>
+
+                                <TableCell>
+                                    {employee.employee_number}
                                 </TableCell>
 
                                 <TableCell>
 
-                                    <IconButton
-                                        color="error"
-                                        onClick={() =>
-                                            handleDeleteClick(employee)
-                                        }
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
                                     >
 
-                                        <DeleteIcon />
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() =>
+                                                handleEditClick(employee)
+                                            }
+                                        >
 
-                                    </IconButton>
+                                            <EditIcon />
+
+                                        </IconButton>
+
+
+                                        <IconButton
+                                            color="error"
+                                            onClick={() =>
+                                                handleDeleteClick(employee)
+                                            }
+                                        >
+
+                                            <DeleteIcon />
+
+                                        </IconButton>
+
+                                    </Stack>
 
                                 </TableCell>
 
@@ -296,6 +403,8 @@ function EmployeesPage() {
 
             </TableContainer>
 
+
+            {/* DELETE DIALOG */}
 
             <Dialog
                 open={openDialog}
@@ -345,6 +454,89 @@ function EmployeesPage() {
 
             </Dialog>
 
+
+            {/* EDIT DIALOG */}
+
+            <Dialog
+                open={openEditDialog}
+                onClose={() =>
+                    setOpenEditDialog(false)
+                }
+                fullWidth
+            >
+
+                <DialogTitle>
+
+                    עריכת עובד
+
+                </DialogTitle>
+
+
+                <DialogContent>
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="שם מלא"
+                        name="full_name"
+                        value={editForm.full_name}
+                        onChange={handleEditChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="טלפון"
+                        name="phone"
+                        value={editForm.phone}
+                        onChange={handleEditChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="מחלקה"
+                        name="department"
+                        value={editForm.department}
+                        onChange={handleEditChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="מספר עובד"
+                        name="employee_number"
+                        value={editForm.employee_number}
+                        onChange={handleEditChange}
+                    />
+
+                </DialogContent>
+
+
+                <DialogActions>
+
+                    <Button
+                        onClick={() =>
+                            setOpenEditDialog(false)
+                        }
+                    >
+                        ביטול
+                    </Button>
+
+
+                    <Button
+                        variant="contained"
+                        onClick={handleUpdateEmployee}
+                    >
+                        שמור
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
+
+
+            {/* SNACKBAR */}
 
             <Snackbar
                 open={snackbar.open}
