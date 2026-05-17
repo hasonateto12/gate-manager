@@ -21,6 +21,7 @@ import {
     Alert,
     Box,
     TextField,
+    Chip,
 
 } from "@mui/material";
 
@@ -214,17 +215,40 @@ function VehiclesPage() {
 
                                         vehicle.status === "approved"
 
-                                            ? "מאושר"
+                                            ? (
+
+                                                <Chip
+                                                    label="מאושר"
+                                                    color="success"
+                                                />
+                                            )
 
                                             : vehicle.status === "pending"
 
-                                                ? "ממתין"
+                                                ? (
+
+                                                    <Chip
+                                                        label="ממתין"
+                                                        color="warning"
+                                                    />
+                                                )
 
                                                 : vehicle.status === "rejected"
 
-                                                    ? "נדחה"
+                                                    ? (
 
-                                                    : vehicle.status
+                                                        <Chip
+                                                            label="נדחה"
+                                                            color="error"
+                                                        />
+                                                    )
+
+                                                    : (
+
+                                                        <Chip
+                                                            label={vehicle.status}
+                                                        />
+                                                    )
                                     }
 
                                 </TableCell>
