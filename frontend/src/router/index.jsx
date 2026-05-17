@@ -8,6 +8,7 @@ import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import EmployeesPage from "../pages/EmployeesPage";
 import VehiclesPage from "../pages/VehiclesPage";
+import EntryRequestsPage from "../pages/EntryRequestsPage";
 
 const router = createBrowserRouter([
 
@@ -35,6 +36,11 @@ const router = createBrowserRouter([
             {
                 path: "/vehicles",
                 element: <VehiclesPage />,
+            },
+
+            {
+                path: "/entry-requests",
+                element: <EntryRequestsPage />,
             },
         ],
     },

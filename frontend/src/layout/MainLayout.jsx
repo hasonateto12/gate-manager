@@ -21,6 +21,7 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { useAuth } from "../context/AuthContext";
@@ -130,6 +131,8 @@ function MainLayout() {
 
                     <List>
 
+                        {/* DASHBOARD */}
+
                         <ListItem disablePadding>
 
                             <ListItemButton
@@ -147,6 +150,8 @@ function MainLayout() {
 
                         </ListItem>
 
+
+                        {/* EMPLOYEES */}
 
                         <ListItem disablePadding>
 
@@ -166,6 +171,8 @@ function MainLayout() {
                         </ListItem>
 
 
+                        {/* VEHICLES */}
+
                         <ListItem disablePadding>
 
                             <ListItemButton
@@ -178,6 +185,26 @@ function MainLayout() {
                                 </ListItemIcon>
 
                                 <ListItemText primary="רכבים" />
+
+                            </ListItemButton>
+
+                        </ListItem>
+
+
+                        {/* ENTRY REQUESTS */}
+
+                        <ListItem disablePadding>
+
+                            <ListItemButton
+                                component={Link}
+                                to="/entry-requests"
+                            >
+
+                                <ListItemIcon>
+                                    <AssignmentIcon />
+                                </ListItemIcon>
+
+                                <ListItemText primary="בקשות כניסה" />
 
                             </ListItemButton>
 
