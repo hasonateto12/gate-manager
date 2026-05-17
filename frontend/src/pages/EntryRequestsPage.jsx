@@ -22,6 +22,13 @@ import {
     Box,
     TextField,
     Chip,
+    Stack,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Snackbar,
 
 } from "@mui/material";
 
@@ -35,6 +42,24 @@ function EntryRequestsPage() {
     const [error, setError] = useState("");
 
     const [search, setSearch] = useState("");
+
+    const [snackbar, setSnackbar] = useState({
+
+        open: false,
+        message: "",
+    });
+
+
+    // REJECT DIALOG
+
+    const [openRejectDialog, setOpenRejectDialog] =
+        useState(false);
+
+    const [selectedRequest, setSelectedRequest] =
+        useState(null);
+
+    const [rejectionReason, setRejectionReason] =
+        useState("");
 
 
     useEffect(() => {
@@ -67,6 +92,8 @@ function EntryRequestsPage() {
         }
     };
 
+
+    // STATUS CHIP
 
     const getStatusChip = (status) => {
 
@@ -108,6 +135,95 @@ function EntryRequestsPage() {
     };
 
 
+    // APPROVE
+
+    const handleApprove = async (requestId) => {
+
+        try {
+
+            await api.put(
+
+                `/entry-requests/${requestId}/status`,
+
+                {
+                    status: "approved",
+                }
+            );
+
+            await fetchRequests();
+
+            setSnackbar({
+
+                open: true,
+                message: "הבקשה אושרה",
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה באישור בקשה",
+            });
+        }
+    };
+
+
+    // REJECT
+
+    const handleOpenRejectDialog = (request) => {
+
+        setSelectedRequest(request);
+
+        setOpenRejectDialog(true);
+    };
+
+
+    const handleReject = async () => {
+
+        try {
+
+            await api.put(
+
+                `/entry-requests/${selectedRequest.id}/status`,
+
+                {
+                    status: "rejected",
+
+                    rejection_reason:
+                    rejectionReason,
+                }
+            );
+
+            await fetchRequests();
+
+            setSnackbar({
+
+                open: true,
+                message: "הבקשה נדחתה",
+            });
+
+            setOpenRejectDialog(false);
+
+            setRejectionReason("");
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה בדחיית בקשה",
+            });
+        }
+    };
+
+
+    // SEARCH
+
     const filteredRequests = requests.filter((request) => {
 
         const plate =
@@ -124,6 +240,8 @@ function EntryRequestsPage() {
         );
     });
 
+
+    // LOADING
 
     if (loading) {
 
@@ -143,6 +261,8 @@ function EntryRequestsPage() {
         );
     }
 
+
+    // ERROR
 
     if (error) {
 
@@ -210,6 +330,10 @@ function EntryRequestsPage() {
                                 סטטוס
                             </TableCell>
 
+                            <TableCell>
+                                פעולות
+                            </TableCell>
+
                         </TableRow>
 
                     </TableHead>
@@ -254,6 +378,51 @@ function EntryRequestsPage() {
 
                                 </TableCell>
 
+
+                                <TableCell>
+
+                                    {
+
+                                        request.status === "pending" && (
+
+                                            <Stack
+                                                direction="row"
+                                                spacing={1}
+                                            >
+
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    size="small"
+                                                    onClick={() =>
+                                                        handleApprove(
+                                                            request.id
+                                                        )
+                                                    }
+                                                >
+                                                    אשר
+                                                </Button>
+
+
+                                                <Button
+                                                    variant="contained"
+                                                    color="error"
+                                                    size="small"
+                                                    onClick={() =>
+                                                        handleOpenRejectDialog(
+                                                            request
+                                                        )
+                                                    }
+                                                >
+                                                    דחה
+                                                </Button>
+
+                                            </Stack>
+                                        )
+                                    }
+
+                                </TableCell>
+
                             </TableRow>
                         ))}
 
@@ -262,6 +431,81 @@ function EntryRequestsPage() {
                 </Table>
 
             </TableContainer>
+
+
+            {/* REJECT DIALOG */}
+
+            <Dialog
+                open={openRejectDialog}
+                onClose={() =>
+                    setOpenRejectDialog(false)
+                }
+                fullWidth
+            >
+
+                <DialogTitle>
+
+                    דחיית בקשה
+
+                </DialogTitle>
+
+
+                <DialogContent>
+
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={4}
+                        margin="normal"
+                        label="סיבת דחייה"
+                        value={rejectionReason}
+                        onChange={(e) =>
+                            setRejectionReason(
+                                e.target.value
+                            )
+                        }
+                    />
+
+                </DialogContent>
+
+
+                <DialogActions>
+
+                    <Button
+                        onClick={() =>
+                            setOpenRejectDialog(false)
+                        }
+                    >
+                        ביטול
+                    </Button>
+
+
+                    <Button
+                        color="error"
+                        variant="contained"
+                        onClick={handleReject}
+                    >
+                        דחה בקשה
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
+
+
+            {/* SNACKBAR */}
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                message={snackbar.message}
+                onClose={() =>
+                    setSnackbar({
+                        ...snackbar,
+                        open: false,
+                    })
+                }
+            />
 
         </Box>
     );
