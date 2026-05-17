@@ -22,13 +22,25 @@ import {
     Box,
     TextField,
     Chip,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Snackbar,
+    MenuItem,
+    Stack,
 
 } from "@mui/material";
+
+import AddIcon from "@mui/icons-material/Add";
 
 
 function VehiclesPage() {
 
     const [vehicles, setVehicles] = useState([]);
+
+    const [employees, setEmployees] = useState([]);
 
     const [loading, setLoading] = useState(true);
 
@@ -37,9 +49,32 @@ function VehiclesPage() {
     const [search, setSearch] = useState("");
 
 
+    // ADD STATES
+
+    const [openAddDialog, setOpenAddDialog] =
+        useState(false);
+
+    const [snackbar, setSnackbar] = useState({
+
+        open: false,
+        message: "",
+    });
+
+    const [addForm, setAddForm] = useState({
+
+        plate_number: "",
+        vehicle_type: "",
+        color: "",
+        employee_id: "",
+        status: "pending",
+    });
+
+
     useEffect(() => {
 
         fetchVehicles();
+
+        fetchEmployees();
 
     }, []);
 
@@ -67,6 +102,78 @@ function VehiclesPage() {
         }
     };
 
+
+    const fetchEmployees = async () => {
+
+        try {
+
+            const response =
+                await api.get("/employees");
+
+            setEmployees(response.data);
+
+        } catch (error) {
+
+            console.error(error);
+        }
+    };
+
+
+    // ADD VEHICLE
+
+    const handleAddChange = (e) => {
+
+        setAddForm({
+
+            ...addForm,
+
+            [e.target.name]: e.target.value,
+        });
+    };
+
+
+    const handleAddVehicle = async () => {
+
+        try {
+
+            await api.post(
+                "/vehicles",
+                addForm
+            );
+
+            await fetchVehicles();
+
+            setSnackbar({
+
+                open: true,
+                message: "הרכב נוסף בהצלחה",
+            });
+
+            setOpenAddDialog(false);
+
+            setAddForm({
+
+                plate_number: "",
+                vehicle_type: "",
+                color: "",
+                employee_id: "",
+                status: "pending",
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה בהוספת רכב",
+            });
+        }
+    };
+
+
+    // SEARCH
 
     const filteredVehicles = vehicles.filter((vehicle) => {
 
@@ -125,13 +232,43 @@ function VehiclesPage() {
 
         <Box>
 
-            <Typography
-                variant="h4"
-                mb={4}
-                fontWeight="bold"
+            <Box
+                sx={{
+
+                    display: "flex",
+
+                    justifyContent: "space-between",
+
+                    alignItems: "center",
+
+                    mb: 4,
+                }}
             >
-                רכבים
-            </Typography>
+
+                <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                >
+                    רכבים
+                </Typography>
+
+
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() =>
+                        setOpenAddDialog(true)
+                    }
+                    sx={{
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1,
+                    }}
+                >
+                    הוסף רכב
+                </Button>
+
+            </Box>
 
 
             <TextField
@@ -261,6 +398,117 @@ function VehiclesPage() {
                 </Table>
 
             </TableContainer>
+
+
+            {/* ADD DIALOG */}
+
+            <Dialog
+                open={openAddDialog}
+                onClose={() =>
+                    setOpenAddDialog(false)
+                }
+                fullWidth
+            >
+
+                <DialogTitle>
+
+                    הוספת רכב
+
+                </DialogTitle>
+
+
+                <DialogContent>
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="מספר רכב"
+                        name="plate_number"
+                        value={addForm.plate_number}
+                        onChange={handleAddChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="סוג רכב"
+                        name="vehicle_type"
+                        value={addForm.vehicle_type}
+                        onChange={handleAddChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="צבע"
+                        name="color"
+                        value={addForm.color}
+                        onChange={handleAddChange}
+                    />
+
+                    <TextField
+                        select
+                        fullWidth
+                        margin="normal"
+                        label="עובד"
+                        name="employee_id"
+                        value={addForm.employee_id}
+                        onChange={handleAddChange}
+                    >
+
+                        {employees.map((employee) => (
+
+                            <MenuItem
+                                key={employee.id}
+                                value={employee.id}
+                            >
+
+                                {employee.full_name}
+
+                            </MenuItem>
+                        ))}
+
+                    </TextField>
+
+                </DialogContent>
+
+
+                <DialogActions>
+
+                    <Button
+                        onClick={() =>
+                            setOpenAddDialog(false)
+                        }
+                    >
+                        ביטול
+                    </Button>
+
+
+                    <Button
+                        variant="contained"
+                        onClick={handleAddVehicle}
+                    >
+                        הוסף
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
+
+
+            {/* SNACKBAR */}
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                message={snackbar.message}
+                onClose={() =>
+                    setSnackbar({
+                        ...snackbar,
+                        open: false,
+                    })
+                }
+            />
 
         </Box>
     );
