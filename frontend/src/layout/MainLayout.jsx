@@ -1,4 +1,4 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 
 import {
 
@@ -12,6 +12,8 @@ import {
     Toolbar,
     Typography,
     AppBar,
+    Button,
+    Stack,
 
 } from "@mui/material";
 
@@ -19,12 +21,28 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import LogoutIcon from "@mui/icons-material/Logout";
+
+import { useAuth } from "../context/AuthContext";
 
 
 const drawerWidth = 240;
 
 
 function MainLayout() {
+
+    const navigate = useNavigate();
+
+    const { user, logout } = useAuth();
+
+
+    const handleLogout = () => {
+
+        logout();
+
+        navigate("/");
+    };
+
 
     return (
 
@@ -39,13 +57,52 @@ function MainLayout() {
                 }}
             >
 
-                <Toolbar>
+                <Toolbar
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                    }}
+                >
 
                     <Typography variant="h6">
 
                         מערכת ניהול שערים
 
                     </Typography>
+
+
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                    >
+
+                        <Box>
+
+                            <Typography variant="body1">
+
+                                {user?.full_name}
+
+                            </Typography>
+
+                            <Typography variant="body2">
+
+                                {user?.role}
+
+                            </Typography>
+
+                        </Box>
+
+
+                        <Button
+                            color="inherit"
+                            startIcon={<LogoutIcon />}
+                            onClick={handleLogout}
+                        >
+                            התנתק
+                        </Button>
+
+                    </Stack>
 
                 </Toolbar>
 
