@@ -2,19 +2,26 @@ import { createBrowserRouter } from "react-router-dom";
 
 import MainLayout from "../layout/MainLayout";
 
+import ProtectedRoute from "../components/ProtectedRoute";
+
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import EmployeesPage from "../pages/EmployeesPage";
 import VehiclesPage from "../pages/VehiclesPage";
 
 const router = createBrowserRouter([
+
     {
         path: "/",
         element: <LoginPage />,
     },
 
     {
-        element: <MainLayout />,
+        element: (
+            <ProtectedRoute>
+                <MainLayout />
+            </ProtectedRoute>
+        ),
 
         children: [
             {
@@ -31,6 +38,7 @@ const router = createBrowserRouter([
             },
         ],
     },
+
 ]);
 
 export default router;
