@@ -35,6 +35,7 @@ import {
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
 
 function EmployeesPage() {
@@ -56,6 +57,20 @@ function EmployeesPage() {
 
         open: false,
         message: "",
+    });
+
+
+    // ADD STATES
+
+    const [openAddDialog, setOpenAddDialog] =
+        useState(false);
+
+    const [addForm, setAddForm] = useState({
+
+        full_name: "",
+        phone: "",
+        department: "",
+        employee_number: "",
     });
 
 
@@ -100,6 +115,59 @@ function EmployeesPage() {
         } finally {
 
             setLoading(false);
+        }
+    };
+
+
+    // ADD
+
+    const handleAddChange = (e) => {
+
+        setAddForm({
+
+            ...addForm,
+
+            [e.target.name]: e.target.value,
+        });
+    };
+
+
+    const handleAddEmployee = async () => {
+
+        try {
+
+            await api.post(
+                "/employees",
+                addForm
+            );
+
+            await fetchEmployees();
+
+            setSnackbar({
+
+                open: true,
+                message: "העובד נוסף בהצלחה",
+            });
+
+            setOpenAddDialog(false);
+
+            setAddForm({
+
+                full_name: "",
+                phone: "",
+                department: "",
+                employee_number: "",
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה בהוספת עובד",
+            });
         }
     };
 
@@ -276,14 +344,43 @@ function EmployeesPage() {
 
         <Box>
 
-            <Typography
-                variant="h4"
-                mb={4}
-                fontWeight="bold"
-            >
-                עובדים
-            </Typography>
+            <Box
+                sx={{
 
+                    display: "flex",
+
+                    justifyContent: "space-between",
+
+                    alignItems: "center",
+
+                    mb: 4,
+                }}
+            >
+
+                <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                >
+                    עובדים
+                </Typography>
+
+
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() =>
+                        setOpenAddDialog(true)
+                    }
+                    sx={{
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1,
+                    }}
+                >
+                    הוסף עובד
+                </Button>
+
+            </Box>
 
             <TextField
                 fullWidth
@@ -402,6 +499,87 @@ function EmployeesPage() {
                 </Table>
 
             </TableContainer>
+
+
+            {/* ADD DIALOG */}
+
+            <Dialog
+                open={openAddDialog}
+                onClose={() =>
+                    setOpenAddDialog(false)
+                }
+                fullWidth
+            >
+
+                <DialogTitle>
+
+                    הוספת עובד
+
+                </DialogTitle>
+
+
+                <DialogContent>
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="שם מלא"
+                        name="full_name"
+                        value={addForm.full_name}
+                        onChange={handleAddChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="טלפון"
+                        name="phone"
+                        value={addForm.phone}
+                        onChange={handleAddChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="מחלקה"
+                        name="department"
+                        value={addForm.department}
+                        onChange={handleAddChange}
+                    />
+
+                    <TextField
+                        fullWidth
+                        margin="normal"
+                        label="מספר עובד"
+                        name="employee_number"
+                        value={addForm.employee_number}
+                        onChange={handleAddChange}
+                    />
+
+                </DialogContent>
+
+
+                <DialogActions>
+
+                    <Button
+                        onClick={() =>
+                            setOpenAddDialog(false)
+                        }
+                    >
+                        ביטול
+                    </Button>
+
+
+                    <Button
+                        variant="contained"
+                        onClick={handleAddEmployee}
+                    >
+                        הוסף
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
 
 
             {/* DELETE DIALOG */}
