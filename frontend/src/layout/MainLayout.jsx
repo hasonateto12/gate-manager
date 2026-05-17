@@ -12,16 +12,18 @@ import {
 function MainLayout() {
 
     return (
+
         <Box>
 
             <AppBar position="static">
+
                 <Toolbar>
 
                     <Typography
                         variant="h6"
                         sx={{ flexGrow: 1 }}
                     >
-                        Gate Manager
+                        מערכת ניהול שערים
                     </Typography>
 
                     <Button
@@ -29,7 +31,7 @@ function MainLayout() {
                         component={Link}
                         to="/dashboard"
                     >
-                        Dashboard
+                        לוח בקרה
                     </Button>
 
                     <Button
@@ -37,7 +39,7 @@ function MainLayout() {
                         component={Link}
                         to="/employees"
                     >
-                        Employees
+                        עובדים
                     </Button>
 
                     <Button
@@ -45,10 +47,11 @@ function MainLayout() {
                         component={Link}
                         to="/vehicles"
                     >
-                        Vehicles
+                        רכבים
                     </Button>
 
                 </Toolbar>
+
             </AppBar>
 
             <Container sx={{ mt: 4 }}>

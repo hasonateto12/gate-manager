@@ -1,7 +1,19 @@
+import {
+    Typography,
+} from "@mui/material";
+
 function DashboardPage() {
+
     return (
+
         <div>
-            <h1>Dashboard Page</h1>
+
+            <Typography variant="h4">
+
+                לוח בקרה
+
+            </Typography>
+
         </div>
     );
 }
