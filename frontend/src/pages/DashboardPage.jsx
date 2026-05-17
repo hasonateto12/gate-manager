@@ -15,6 +15,13 @@ import {
     Box,
     CircularProgress,
     Alert,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Chip,
 
 } from "@mui/material";
 
@@ -23,6 +30,9 @@ function DashboardPage() {
 
     const [stats, setStats] = useState(null);
 
+    const [recentRequests, setRecentRequests] =
+        useState([]);
+
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState("");
@@ -30,21 +40,35 @@ function DashboardPage() {
 
     useEffect(() => {
 
-        fetchStats();
+        fetchDashboard();
 
     }, []);
 
 
-    const fetchStats = async () => {
+    const fetchDashboard = async () => {
 
         try {
 
             setLoading(true);
 
-            const response =
+
+            // STATS
+
+            const statsResponse =
                 await api.get("/dashboard/stats");
 
-            setStats(response.data);
+            setStats(statsResponse.data);
+
+
+            // RECENT REQUESTS
+
+            const requestsResponse =
+                await api.get("/entry-requests");
+
+            setRecentRequests(
+
+                requestsResponse.data.slice(0, 5)
+            );
 
         } catch (error) {
 
@@ -56,6 +80,46 @@ function DashboardPage() {
 
             setLoading(false);
         }
+    };
+
+
+    const getStatusChip = (status) => {
+
+        if (status === "approved") {
+
+            return (
+                <Chip
+                    label="מאושר"
+                    color="success"
+                />
+            );
+        }
+
+        if (status === "pending") {
+
+            return (
+                <Chip
+                    label="ממתין"
+                    color="warning"
+                />
+            );
+        }
+
+        if (status === "rejected") {
+
+            return (
+                <Chip
+                    label="נדחה"
+                    color="error"
+                />
+            );
+        }
+
+        return (
+            <Chip
+                label={status}
+            />
+        );
     };
 
 
@@ -104,9 +168,12 @@ function DashboardPage() {
             </Typography>
 
 
+            {/* CARDS */}
+
             <Grid
                 container
                 spacing={3}
+                mb={4}
             >
 
                 {/* TOTAL */}
@@ -263,6 +330,101 @@ function DashboardPage() {
                 </Grid>
 
             </Grid>
+
+
+            {/* RECENT REQUESTS */}
+
+            <Paper
+                elevation={3}
+                sx={{
+                    p: 3,
+                    borderRadius: 3,
+                }}
+            >
+
+                <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    mb={3}
+                >
+                    בקשות אחרונות
+                </Typography>
+
+
+                <TableContainer>
+
+                    <Table>
+
+                        <TableHead>
+
+                            <TableRow>
+
+                                <TableCell>
+                                    מספר רכב
+                                </TableCell>
+
+                                <TableCell>
+                                    תאריך
+                                </TableCell>
+
+                                <TableCell>
+                                    הערות
+                                </TableCell>
+
+                                <TableCell>
+                                    סטטוס
+                                </TableCell>
+
+                            </TableRow>
+
+                        </TableHead>
+
+
+                        <TableBody>
+
+                            {recentRequests.map((request) => (
+
+                                <TableRow
+                                    key={request.id}
+                                >
+
+                                    <TableCell>
+                                        {request.plate_number}
+                                    </TableCell>
+
+                                    <TableCell>
+
+                                        {
+
+                                            new Date(
+                                                request.request_time
+                                            ).toLocaleString("he-IL")
+                                        }
+
+                                    </TableCell>
+
+                                    <TableCell>
+                                        {request.notes}
+                                    </TableCell>
+
+                                    <TableCell>
+
+                                        {getStatusChip(
+                                            request.status
+                                        )}
+
+                                    </TableCell>
+
+                                </TableRow>
+                            ))}
+
+                        </TableBody>
+
+                    </Table>
+
+                </TableContainer>
+
+            </Paper>
 
         </Box>
     );
