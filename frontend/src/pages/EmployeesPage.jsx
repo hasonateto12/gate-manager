@@ -21,8 +21,18 @@ import {
     Alert,
     Box,
     TextField,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button,
+    Snackbar,
 
 } from "@mui/material";
+
+import DeleteIcon from "@mui/icons-material/Delete";
 
 
 function EmployeesPage() {
@@ -34,6 +44,17 @@ function EmployeesPage() {
     const [error, setError] = useState("");
 
     const [search, setSearch] = useState("");
+
+    const [openDialog, setOpenDialog] = useState(false);
+
+    const [selectedEmployee, setSelectedEmployee] =
+        useState(null);
+
+    const [snackbar, setSnackbar] = useState({
+
+        open: false,
+        message: "",
+    });
 
 
     useEffect(() => {
@@ -64,6 +85,53 @@ function EmployeesPage() {
 
             setLoading(false);
         }
+    };
+
+
+    const handleDeleteClick = (employee) => {
+
+        setSelectedEmployee(employee);
+
+        setOpenDialog(true);
+    };
+
+
+    const handleDeleteEmployee = async () => {
+
+        try {
+
+            await api.delete(
+                `/employees/${selectedEmployee.id}`
+            );
+
+            setEmployees((prev) =>
+
+                prev.filter(
+
+                    (employee) =>
+
+                        employee.id !== selectedEmployee.id
+                )
+            );
+
+            setSnackbar({
+
+                open: true,
+                message: "העובד נמחק בהצלחה",
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה במחיקת עובד",
+            });
+        }
+
+        setOpenDialog(false);
     };
 
 
@@ -167,6 +235,10 @@ function EmployeesPage() {
                                 תפקיד
                             </TableCell>
 
+                            <TableCell>
+                                פעולות
+                            </TableCell>
+
                         </TableRow>
 
                     </TableHead>
@@ -200,6 +272,21 @@ function EmployeesPage() {
                                     {employee.role}
                                 </TableCell>
 
+                                <TableCell>
+
+                                    <IconButton
+                                        color="error"
+                                        onClick={() =>
+                                            handleDeleteClick(employee)
+                                        }
+                                    >
+
+                                        <DeleteIcon />
+
+                                    </IconButton>
+
+                                </TableCell>
+
                             </TableRow>
                         ))}
 
@@ -208,6 +295,68 @@ function EmployeesPage() {
                 </Table>
 
             </TableContainer>
+
+
+            <Dialog
+                open={openDialog}
+                onClose={() => setOpenDialog(false)}
+            >
+
+                <DialogTitle>
+
+                    מחיקת עובד
+
+                </DialogTitle>
+
+
+                <DialogContent>
+
+                    <DialogContentText>
+
+                        האם למחוק את העובד
+                        {" "}
+                        {selectedEmployee?.full_name}
+                        ?
+
+                    </DialogContentText>
+
+                </DialogContent>
+
+
+                <DialogActions>
+
+                    <Button
+                        onClick={() =>
+                            setOpenDialog(false)
+                        }
+                    >
+                        ביטול
+                    </Button>
+
+
+                    <Button
+                        color="error"
+                        onClick={handleDeleteEmployee}
+                    >
+                        מחק
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
+
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                message={snackbar.message}
+                onClose={() =>
+                    setSnackbar({
+                        ...snackbar,
+                        open: false,
+                    })
+                }
+            />
 
         </Box>
     );
