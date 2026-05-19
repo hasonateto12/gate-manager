@@ -14,6 +14,7 @@ import {
     AppBar,
     Button,
     Stack,
+    IconButton,
 
 } from "@mui/material";
 
@@ -24,8 +25,17 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
+import { useContext } from "react";
+
+import { ColorModeContext } from "../main";
+
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 import { useAuth } from "../context/AuthContext";
+
+import { useTheme } from "@mui/material/styles";
+
 
 
 const drawerWidth = 240;
@@ -34,6 +44,11 @@ const drawerWidth = 240;
 function MainLayout() {
 
     const navigate = useNavigate();
+
+    const theme = useTheme();
+
+    const colorMode =
+        useContext(ColorModeContext);
 
     const { user, logout } = useAuth();
 
@@ -79,6 +94,31 @@ function MainLayout() {
                         alignItems="center"
                     >
 
+                        {/* DARK MODE ICON */}
+
+                        <IconButton
+                            color="inherit"
+                            onClick={colorMode.toggleColorMode}
+                        >
+
+                            {
+
+                                theme.palette.mode === "dark"
+
+                                    ?
+
+                                    <LightModeIcon />
+
+                                    :
+
+                                    <DarkModeIcon />
+                            }
+
+                        </IconButton>
+
+
+                        {/* USER INFO */}
+
                         <Box>
 
                             <Typography variant="body1">
@@ -95,6 +135,8 @@ function MainLayout() {
 
                         </Box>
 
+
+                        {/* LOGOUT */}
 
                         <Button
                             color="inherit"
@@ -210,6 +252,7 @@ function MainLayout() {
                             </ListItemButton>
 
                         </ListItem>
+
 
                         {/* ENTRY LOGS */}
 
