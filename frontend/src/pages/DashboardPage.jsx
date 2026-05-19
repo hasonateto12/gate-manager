@@ -25,6 +25,16 @@ import {
 
 } from "@mui/material";
 
+import {
+
+    PieChart,
+    Pie,
+    Cell,
+    Tooltip,
+    ResponsiveContainer,
+
+} from "recharts";
+
 
 function DashboardPage() {
 
@@ -121,6 +131,30 @@ function DashboardPage() {
             />
         );
     };
+
+
+    // CHART DATA
+
+    const chartData = [
+
+        {
+            name: "מאושרות",
+            value: Number(stats?.approved || 0),
+            color: "#4caf50",
+        },
+
+        {
+            name: "ממתינות",
+            value: Number(stats?.pending || 0),
+            color: "#ff9800",
+        },
+
+        {
+            name: "נדחו",
+            value: Number(stats?.rejected || 0),
+            color: "#f44336",
+        },
+    ];
 
 
     if (loading) {
@@ -330,6 +364,67 @@ function DashboardPage() {
                 </Grid>
 
             </Grid>
+
+
+            {/* CHART */}
+
+            <Paper
+                elevation={3}
+                sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    mb: 4,
+                }}
+            >
+
+                <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    mb={3}
+                >
+                    סטטיסטיקת בקשות
+                </Typography>
+
+
+                <Box
+                    sx={{
+                        width: "100%",
+                        height: 350,
+                    }}
+                >
+
+                    <ResponsiveContainer>
+
+                        <PieChart>
+
+                            <Pie
+                                data={chartData}
+                                dataKey="value"
+                                nameKey="name"
+                                outerRadius={120}
+                                label
+                            >
+
+                                {chartData.map((entry, index) => (
+
+                                    <Cell
+                                        key={index}
+                                        fill={entry.color}
+                                    />
+                                ))}
+
+                            </Pie>
+
+
+                            <Tooltip />
+
+                        </PieChart>
+
+                    </ResponsiveContainer>
+
+                </Box>
+
+            </Paper>
 
 
             {/* RECENT REQUESTS */}
