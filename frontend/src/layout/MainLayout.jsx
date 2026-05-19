@@ -23,6 +23,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
+import FactCheckIcon from "@mui/icons-material/FactCheck";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -205,6 +206,25 @@ function MainLayout() {
                                 </ListItemIcon>
 
                                 <ListItemText primary="בקשות כניסה" />
+
+                            </ListItemButton>
+
+                        </ListItem>
+
+                        {/* ENTRY LOGS */}
+
+                        <ListItem disablePadding>
+
+                            <ListItemButton
+                                component={Link}
+                                to="/entry-logs"
+                            >
+
+                                <ListItemIcon>
+                                    <FactCheckIcon />
+                                </ListItemIcon>
+
+                                <ListItemText primary="לוג כניסות" />
 
                             </ListItemButton>
 
