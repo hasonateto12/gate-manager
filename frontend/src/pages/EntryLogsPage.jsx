@@ -22,6 +22,8 @@ import {
     Box,
     TextField,
     Chip,
+    Button,
+    Snackbar,
 
 } from "@mui/material";
 
@@ -35,6 +37,12 @@ function EntryLogsPage() {
     const [error, setError] = useState("");
 
     const [search, setSearch] = useState("");
+
+    const [snackbar, setSnackbar] = useState({
+
+        open: false,
+        message: "",
+    });
 
 
     useEffect(() => {
@@ -68,6 +76,39 @@ function EntryLogsPage() {
     };
 
 
+    // VEHICLE EXIT
+
+    const handleVehicleExit = async (logId) => {
+
+        try {
+
+            await api.put(
+                `/entry-logs/${logId}/exit`
+            );
+
+            await fetchLogs();
+
+            setSnackbar({
+
+                open: true,
+                message: "הרכב יצא בהצלחה",
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            setSnackbar({
+
+                open: true,
+                message: "שגיאה בעדכון יציאה",
+            });
+        }
+    };
+
+
+    // STATUS CHIP
+
     const getResultChip = (result) => {
 
         if (result === "approved") {
@@ -98,6 +139,8 @@ function EntryLogsPage() {
     };
 
 
+    // SEARCH
+
     const filteredLogs = logs.filter((log) => {
 
         const plate =
@@ -114,6 +157,8 @@ function EntryLogsPage() {
         );
     });
 
+
+    // LOADING
 
     if (loading) {
 
@@ -133,6 +178,8 @@ function EntryLogsPage() {
         );
     }
 
+
+    // ERROR
 
     if (error) {
 
@@ -208,6 +255,10 @@ function EntryLogsPage() {
                                 תוצאה
                             </TableCell>
 
+                            <TableCell>
+                                פעולות
+                            </TableCell>
+
                         </TableRow>
 
                     </TableHead>
@@ -245,7 +296,6 @@ function EntryLogsPage() {
                                 </TableCell>
 
 
-
                                 <TableCell>
 
                                     {
@@ -265,15 +315,39 @@ function EntryLogsPage() {
 
                                 </TableCell>
 
+
                                 <TableCell>
                                     {log.notes}
                                 </TableCell>
+
 
                                 <TableCell>
 
                                     {getResultChip(
                                         log.result
                                     )}
+
+                                </TableCell>
+
+
+                                <TableCell>
+
+                                    {
+
+                                        !log.exit_time && (
+
+                                            <Button
+                                                variant="contained"
+                                                color="warning"
+                                                size="small"
+                                                onClick={() =>
+                                                    handleVehicleExit(log.id)
+                                                }
+                                            >
+                                                יציאה
+                                            </Button>
+                                        )
+                                    }
 
                                 </TableCell>
 
@@ -285,6 +359,19 @@ function EntryLogsPage() {
                 </Table>
 
             </TableContainer>
+
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                message={snackbar.message}
+                onClose={() =>
+                    setSnackbar({
+                        ...snackbar,
+                        open: false,
+                    })
+                }
+            />
 
         </Box>
     );
