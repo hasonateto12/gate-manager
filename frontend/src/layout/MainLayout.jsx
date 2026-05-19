@@ -1,4 +1,17 @@
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import {
+
+    useContext,
+    useState,
+
+} from "react";
+
+import {
+
+    Outlet,
+    Link,
+    useNavigate,
+
+} from "react-router-dom";
 
 import {
 
@@ -15,6 +28,8 @@ import {
     Button,
     Stack,
     IconButton,
+    Divider,
+    useMediaQuery,
 
 } from "@mui/material";
 
@@ -25,17 +40,17 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
-import { useContext } from "react";
-
-import { ColorModeContext } from "../main";
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
-import { useAuth } from "../context/AuthContext";
+import MenuIcon from "@mui/icons-material/Menu";
 
 import { useTheme } from "@mui/material/styles";
 
+import { useAuth } from "../context/AuthContext";
+
+import { ColorModeContext } from "../main";
 
 
 const drawerWidth = 240;
@@ -50,6 +65,12 @@ function MainLayout() {
     const colorMode =
         useContext(ColorModeContext);
 
+    const isMobile =
+        useMediaQuery(theme.breakpoints.down("md"));
+
+    const [mobileOpen, setMobileOpen] =
+        useState(false);
+
     const { user, logout } = useAuth();
 
 
@@ -59,6 +80,129 @@ function MainLayout() {
 
         navigate("/");
     };
+
+
+    const handleDrawerToggle = () => {
+
+        setMobileOpen(!mobileOpen);
+    };
+
+
+    // SIDEBAR CONTENT
+
+    const drawerContent = (
+
+        <Box>
+
+            <Toolbar />
+
+            <Divider />
+
+            <List>
+
+                {/* DASHBOARD */}
+
+                <ListItem disablePadding>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/dashboard"
+                    >
+
+                        <ListItemIcon>
+                            <DashboardIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="לוח בקרה" />
+
+                    </ListItemButton>
+
+                </ListItem>
+
+
+                {/* EMPLOYEES */}
+
+                <ListItem disablePadding>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/employees"
+                    >
+
+                        <ListItemIcon>
+                            <PeopleIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="עובדים" />
+
+                    </ListItemButton>
+
+                </ListItem>
+
+
+                {/* VEHICLES */}
+
+                <ListItem disablePadding>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/vehicles"
+                    >
+
+                        <ListItemIcon>
+                            <DirectionsCarIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="רכבים" />
+
+                    </ListItemButton>
+
+                </ListItem>
+
+
+                {/* ENTRY REQUESTS */}
+
+                <ListItem disablePadding>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/entry-requests"
+                    >
+
+                        <ListItemIcon>
+                            <AssignmentIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="בקשות כניסה" />
+
+                    </ListItemButton>
+
+                </ListItem>
+
+
+                {/* ENTRY LOGS */}
+
+                <ListItem disablePadding>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/entry-logs"
+                    >
+
+                        <ListItemIcon>
+                            <FactCheckIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="לוג כניסות" />
+
+                    </ListItemButton>
+
+                </ListItem>
+
+            </List>
+
+        </Box>
+    );
 
 
     return (
@@ -81,11 +225,34 @@ function MainLayout() {
                     }}
                 >
 
-                    <Typography variant="h6">
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                    >
 
-                        מערכת ניהול שערים
+                        {
 
-                    </Typography>
+                            isMobile && (
+
+                                <IconButton
+                                    color="inherit"
+                                    onClick={handleDrawerToggle}
+                                >
+
+                                    <MenuIcon />
+
+                                </IconButton>
+                            )
+                        }
+
+                        <Typography variant="h6">
+
+                            מערכת ניהול שערים
+
+                        </Typography>
+
+                    </Stack>
 
 
                     <Stack
@@ -94,7 +261,7 @@ function MainLayout() {
                         alignItems="center"
                     >
 
-                        {/* DARK MODE ICON */}
+                        {/* DARK MODE */}
 
                         <IconButton
                             color="inherit"
@@ -153,131 +320,54 @@ function MainLayout() {
             </AppBar>
 
 
-            {/* SIDEBAR */}
+            {/* MOBILE DRAWER */}
 
-            <Drawer
-                variant="permanent"
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
+            {
 
-                    "& .MuiDrawer-paper": {
-                        width: drawerWidth,
-                        boxSizing: "border-box",
-                    },
-                }}
-            >
+                isMobile ? (
 
-                <Toolbar />
+                    <Drawer
+                        variant="temporary"
+                        open={mobileOpen}
+                        onClose={handleDrawerToggle}
+                        ModalProps={{
+                            keepMounted: true,
+                        }}
+                        sx={{
 
-                <Box sx={{ overflow: "auto" }}>
+                            "& .MuiDrawer-paper": {
 
-                    <List>
+                                width: drawerWidth,
+                            },
+                        }}
+                    >
 
-                        {/* DASHBOARD */}
+                        {drawerContent}
 
-                        <ListItem disablePadding>
+                    </Drawer>
 
-                            <ListItemButton
-                                component={Link}
-                                to="/dashboard"
-                            >
+                ) : (
 
-                                <ListItemIcon>
-                                    <DashboardIcon />
-                                </ListItemIcon>
+                    <Drawer
+                        variant="permanent"
+                        sx={{
+                            width: drawerWidth,
+                            flexShrink: 0,
 
-                                <ListItemText primary="לוח בקרה" />
+                            "& .MuiDrawer-paper": {
 
-                            </ListItemButton>
+                                width: drawerWidth,
 
-                        </ListItem>
+                                boxSizing: "border-box",
+                            },
+                        }}
+                    >
 
+                        {drawerContent}
 
-                        {/* EMPLOYEES */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                component={Link}
-                                to="/employees"
-                            >
-
-                                <ListItemIcon>
-                                    <PeopleIcon />
-                                </ListItemIcon>
-
-                                <ListItemText primary="עובדים" />
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-
-                        {/* VEHICLES */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                component={Link}
-                                to="/vehicles"
-                            >
-
-                                <ListItemIcon>
-                                    <DirectionsCarIcon />
-                                </ListItemIcon>
-
-                                <ListItemText primary="רכבים" />
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-
-                        {/* ENTRY REQUESTS */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                component={Link}
-                                to="/entry-requests"
-                            >
-
-                                <ListItemIcon>
-                                    <AssignmentIcon />
-                                </ListItemIcon>
-
-                                <ListItemText primary="בקשות כניסה" />
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-
-                        {/* ENTRY LOGS */}
-
-                        <ListItem disablePadding>
-
-                            <ListItemButton
-                                component={Link}
-                                to="/entry-logs"
-                            >
-
-                                <ListItemIcon>
-                                    <FactCheckIcon />
-                                </ListItemIcon>
-
-                                <ListItemText primary="לוג כניסות" />
-
-                            </ListItemButton>
-
-                        </ListItem>
-
-                    </List>
-
-                </Box>
-
-            </Drawer>
+                    </Drawer>
+                )
+            }
 
 
             {/* PAGE CONTENT */}
