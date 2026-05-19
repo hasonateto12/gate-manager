@@ -71,4 +71,48 @@ router.get(
     }
 );
 
+
+/* =========================
+   VEHICLE EXIT
+========================= */
+router.put(
+    "/:id/exit",
+    verifyToken,
+    verifyAdmin,
+    (req, res) => {
+
+        const { id } = req.params;
+
+        const sql = `
+            UPDATE entry_logs
+            SET exit_time = NOW()
+            WHERE id = ?
+        `;
+
+        db.query(sql, [id], (err, resultData) => {
+
+            if (err) {
+
+                console.log("EXIT error:", err);
+
+                return res.status(500).json({
+                    error: "Failed to update exit time",
+                    details: err.message,
+                });
+            }
+
+            if (resultData.affectedRows === 0) {
+
+                return res.status(404).json({
+                    error: "Log not found",
+                });
+            }
+
+            res.json({
+                message: "Vehicle exit updated successfully",
+            });
+        });
+    }
+);
+
 module.exports = router;
