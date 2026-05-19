@@ -27,6 +27,10 @@ import {
 
 } from "@mui/material";
 
+import jsPDF from "jspdf";
+
+import html2canvas from "html2canvas";
+
 
 function EntryLogsPage() {
 
@@ -73,6 +77,56 @@ function EntryLogsPage() {
 
             setLoading(false);
         }
+    };
+
+
+    // EXPORT PDF
+
+    const handleExportPDF = async () => {
+
+        const input =
+            document.getElementById("logs-table");
+
+        const canvas =
+            await html2canvas(input);
+
+        const imgData =
+            canvas.toDataURL("image/png");
+
+        const pdf =
+            new jsPDF("l", "mm", "a4");
+
+        const pdfWidth =
+            pdf.internal.pageSize.getWidth();
+
+        const pdfHeight =
+            (canvas.height * pdfWidth)
+            / canvas.width;
+
+        pdf.addImage(
+
+            imgData,
+
+            "PNG",
+
+            0,
+
+            0,
+
+            pdfWidth,
+
+            pdfHeight
+        );
+
+        pdf.save("entry_logs_report.pdf");
+
+
+        setSnackbar({
+
+            open: true,
+
+            message: "PDF נוצר בהצלחה",
+        });
     };
 
 
@@ -198,6 +252,8 @@ function EntryLogsPage() {
 
         <Box>
 
+            {/* HEADER */}
+
             <Typography
                 variant="h4"
                 fontWeight="bold"
@@ -206,6 +262,8 @@ function EntryLogsPage() {
                 לוג כניסות
             </Typography>
 
+
+            {/* SEARCH */}
 
             <TextField
                 fullWidth
@@ -219,7 +277,33 @@ function EntryLogsPage() {
             />
 
 
-            <TableContainer component={Paper}>
+            {/* PDF BUTTON */}
+
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    mb: 3,
+                }}
+            >
+
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleExportPDF}
+                >
+                    ייצוא PDF
+                </Button>
+
+            </Box>
+
+
+            {/* TABLE */}
+
+            <TableContainer
+                component={Paper}
+                id="logs-table"
+            >
 
                 <Table>
 
@@ -360,6 +444,8 @@ function EntryLogsPage() {
 
             </TableContainer>
 
+
+            {/* SNACKBAR */}
 
             <Snackbar
                 open={snackbar.open}
