@@ -1,118 +1,212 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+
+    useState,
+
+} from "react";
 
 import {
+
     Box,
     Button,
     Paper,
     TextField,
     Typography,
+    Alert,
+
 } from "@mui/material";
 
+import { useNavigate } from "react-router-dom";
+
 import api from "../api/axios";
+
+import { useAuth } from "../context/AuthContext";
+
 
 function LoginPage() {
 
     const navigate = useNavigate();
 
+    const { login } = useAuth();
+
+
     const [formData, setFormData] = useState({
+
         email: "",
         password: "",
     });
 
+
+    const [error, setError] = useState("");
+
+
     const handleChange = (e) => {
 
         setFormData({
+
             ...formData,
+
             [e.target.name]: e.target.value,
         });
     };
+
 
     const handleLogin = async (e) => {
 
         e.preventDefault();
 
+        setError("");
+
+
         try {
 
             const response = await api.post(
+
                 "/auth/login",
+
                 formData
             );
 
+
             console.log(response.data);
 
-            localStorage.setItem(
-                "token",
-                response.data.token
+
+            // SAVE USER + TOKEN
+
+            login(
+
+                response.data.token,
+
+                response.data.user
             );
 
-            navigate("/dashboard");
+
+            // ROLE BASED REDIRECT
+
+            if (
+                response.data.user.role === "admin"
+            ) {
+
+                navigate("/dashboard");
+
+            } else {
+
+                navigate("/guard");
+            }
 
         } catch (error) {
 
             console.error(error);
 
-            alert("Login failed");
+            setError(
+
+                error.response?.data?.error ||
+
+                "שגיאה בהתחברות"
+            );
         }
     };
+
 
     return (
 
         <Box
             sx={{
+
+                minHeight: "100vh",
+
                 display: "flex",
+
                 justifyContent: "center",
+
                 alignItems: "center",
-                height: "100vh",
-                backgroundColor: "#f5f5f5",
+
+                backgroundColor: "#f4f6f8",
             }}
         >
 
             <Paper
-                elevation={3}
+                elevation={4}
                 sx={{
-                    padding: 4,
+
                     width: 400,
+
+                    p: 4,
+
+                    borderRadius: 3,
                 }}
             >
 
                 <Typography
                     variant="h4"
-                    mb={3}
-                    sx={{ textAlign: "center" }}
+                    fontWeight="bold"
+                    textAlign="center"
+                    mb={4}
                 >
-                    Gate Manager Login
+
+                    מערכת ניהול שערים
+
                 </Typography>
 
-                <form onSubmit={handleLogin}>
+
+                {
+
+                    error && (
+
+                        <Alert
+                            severity="error"
+                            sx={{ mb: 2 }}
+                        >
+
+                            {error}
+
+                        </Alert>
+                    )
+                }
+
+
+                <Box
+                    component="form"
+                    onSubmit={handleLogin}
+                >
 
                     <TextField
                         fullWidth
-                        label="Email"
+                        label="אימייל"
                         name="email"
+                        type="email"
                         margin="normal"
+                        value={formData.email}
                         onChange={handleChange}
                     />
 
+
                     <TextField
                         fullWidth
-                        label="Password"
+                        label="סיסמה"
                         name="password"
                         type="password"
                         margin="normal"
+                        value={formData.password}
                         onChange={handleChange}
                     />
 
+
                     <Button
-                        type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 2 }}
+                        type="submit"
+                        size="large"
+                        sx={{
+                            mt: 3,
+                            py: 1.5,
+                        }}
                     >
-                        Login
+
+                        התחבר
+
                     </Button>
 
-                </form>
+                </Box>
 
             </Paper>
 
