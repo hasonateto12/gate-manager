@@ -1,55 +1,57 @@
-const { body } = require('express-validator');
+const { body } = require("express-validator");
 
 const registerValidation = [
-    body('full_name')
+
+    body("full_name")
         .trim()
         .notEmpty()
-        .withMessage('Full name is required')
+        .withMessage("Full name is required")
         .isLength({ min: 2, max: 100 })
-        .withMessage('Full name must be between 2 and 100 characters'),
+        .withMessage("Full name must be between 2 and 100 characters"),
 
-    body('username')
+    body("username")
         .trim()
         .notEmpty()
-        .withMessage('Username is required')
+        .withMessage("Username is required")
         .isLength({ min: 3, max: 50 })
-        .withMessage('Username must be between 3 and 50 characters')
+        .withMessage("Username must be between 3 and 50 characters")
         .matches(/^[a-zA-Z0-9_]+$/)
-        .withMessage('Username can contain only letters, numbers and underscore'),
+        .withMessage("Username can contain only letters, numbers and underscore"),
 
-    body('email')
+    body("email")
         .trim()
         .notEmpty()
-        .withMessage('Email is required')
+        .withMessage("Email is required")
         .isEmail()
-        .withMessage('Please enter a valid email')
+        .withMessage("Please enter a valid email")
         .normalizeEmail(),
 
-    body('password')
+    body("password")
         .notEmpty()
-        .withMessage('Password is required')
+        .withMessage("Password is required")
         .isLength({ min: 6, max: 100 })
-        .withMessage('Password must be between 6 and 100 characters'),
+        .withMessage("Password must be between 6 and 100 characters"),
 
-    body('role')
+    body("role")
         .optional()
         .trim()
-        .isIn(['admin', 'user'])
-        .withMessage('Role must be either admin or user'),
+        .isIn(["admin", "guard"])
+        .withMessage("Role must be admin or guard"),
 ];
 
 const loginValidation = [
-    body('email')
+
+    body("email")
         .trim()
         .notEmpty()
-        .withMessage('Email is required')
+        .withMessage("Email is required")
         .isEmail()
-        .withMessage('Please enter a valid email')
+        .withMessage("Please enter a valid email")
         .normalizeEmail(),
 
-    body('password')
+    body("password")
         .notEmpty()
-        .withMessage('Password is required'),
+        .withMessage("Password is required"),
 ];
 
 module.exports = {

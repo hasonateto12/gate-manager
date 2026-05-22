@@ -1,18 +1,13 @@
-import {
-
-    useState,
-
-} from "react";
+import { useState } from "react";
 
 import {
-
     Box,
     Button,
     Paper,
     TextField,
     Typography,
     Alert,
-
+    CircularProgress,
 } from "@mui/material";
 
 import { useNavigate } from "react-router-dom";
@@ -21,34 +16,28 @@ import api from "../api/axios";
 
 import { useAuth } from "../context/AuthContext";
 
-
 function LoginPage() {
 
     const navigate = useNavigate();
 
     const { login } = useAuth();
 
+    const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
-
         email: "",
         password: "",
     });
 
-
     const [error, setError] = useState("");
-
 
     const handleChange = (e) => {
 
         setFormData({
-
             ...formData,
-
             [e.target.name]: e.target.value,
         });
     };
-
 
     const handleLogin = async (e) => {
 
@@ -56,70 +45,60 @@ function LoginPage() {
 
         setError("");
 
+        setLoading(true);
 
         try {
 
             const response = await api.post(
-
                 "/auth/login",
-
                 formData
             );
 
+            console.log("LOGIN RESPONSE:", response.data);
 
-            console.log(response.data);
-
-
-            // SAVE USER + TOKEN
-
+            // SAVE TOKEN + USER
             login(
-
                 response.data.token,
-
                 response.data.user
             );
 
-
             // ROLE BASED REDIRECT
-
-            if (
-                response.data.user.role === "admin"
-            ) {
+            if (response.data.user?.role === "admin") {
 
                 navigate("/dashboard");
 
-            } else {
+            } else if (response.data.user?.role === "guard") {
 
                 navigate("/guard");
+
+            } else {
+
+                navigate("/");
             }
 
         } catch (error) {
 
-            console.error(error);
+            console.error("LOGIN ERROR:", error);
 
             setError(
-
                 error.response?.data?.error ||
-
                 "שגיאה בהתחברות"
             );
+
+        } finally {
+
+            setLoading(false);
         }
     };
-
 
     return (
 
         <Box
             sx={{
-
                 minHeight: "100vh",
-
                 display: "flex",
-
                 justifyContent: "center",
-
                 alignItems: "center",
-
                 backgroundColor: "#f4f6f8",
             }}
         >
@@ -127,11 +106,8 @@ function LoginPage() {
             <Paper
                 elevation={4}
                 sx={{
-
                     width: 400,
-
                     p: 4,
-
                     borderRadius: 3,
                 }}
             >
@@ -142,27 +118,19 @@ function LoginPage() {
                     textAlign="center"
                     mb={4}
                 >
-
                     מערכת ניהול שערים
-
                 </Typography>
 
-
                 {
-
                     error && (
-
                         <Alert
                             severity="error"
                             sx={{ mb: 2 }}
                         >
-
                             {error}
-
                         </Alert>
                     )
                 }
-
 
                 <Box
                     component="form"
@@ -179,7 +147,6 @@ function LoginPage() {
                         onChange={handleChange}
                     />
 
-
                     <TextField
                         fullWidth
                         label="סיסמה"
@@ -190,19 +157,25 @@ function LoginPage() {
                         onChange={handleChange}
                     />
 
-
                     <Button
                         fullWidth
                         variant="contained"
                         type="submit"
                         size="large"
+                        disabled={loading}
                         sx={{
                             mt: 3,
                             py: 1.5,
                         }}
                     >
 
-                        התחבר
+                        {
+                            loading ? (
+                                <CircularProgress size={24} />
+                            ) : (
+                                "התחבר"
+                            )
+                        }
 
                     </Button>
 
