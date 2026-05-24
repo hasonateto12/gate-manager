@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 
 import ProtectedRoute from "../components/ProtectedRoute";
+import RoleProtectedRoute from "../components/RoleProtectedRoute";
 
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
@@ -14,6 +15,7 @@ import GuardPage from "../pages/GuardPage";
 
 const router = createBrowserRouter([
 
+    // LOGIN
     {
         path: "/",
         element: <LoginPage />,
@@ -22,9 +24,14 @@ const router = createBrowserRouter([
     // ADMIN ROUTES
     {
         element: (
-            <ProtectedRoute>
-                <MainLayout />
-            </ProtectedRoute>
+
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+
+                <ProtectedRoute>
+                    <MainLayout />
+                </ProtectedRoute>
+
+            </RoleProtectedRoute>
         ),
 
         children: [
@@ -60,10 +67,16 @@ const router = createBrowserRouter([
     // GUARD ROUTE
     {
         path: "/guard",
+
         element: (
-            <ProtectedRoute>
-                <GuardPage />
-            </ProtectedRoute>
+
+            <RoleProtectedRoute allowedRoles={["guard"]}>
+
+                <ProtectedRoute>
+                    <GuardPage />
+                </ProtectedRoute>
+
+            </RoleProtectedRoute>
         ),
     },
 
