@@ -177,4 +177,49 @@ router.delete(
     }
 );
 
+
+/* =========================
+   CHECK VEHICLE
+========================= */
+router.get(
+    "/check/:plate_number",
+    verifyToken,
+    (req, res) => {
+
+        const { plate_number } = req.params;
+
+        const sql = `
+            SELECT *
+            FROM vehicles
+            WHERE plate_number = ?
+        `;
+
+        db.query(sql, [plate_number], (err, result) => {
+
+            if (err) {
+
+                console.log("CHECK VEHICLE error:", err);
+
+                return res.status(500).json({
+                    error: "Database error",
+                });
+            }
+
+            // NOT FOUND
+            if (result.length === 0) {
+
+                return res.json({
+                    exists: false,
+                });
+            }
+
+            // FOUND
+            res.json({
+                exists: true,
+                vehicle: result[0],
+            });
+        });
+    }
+);
+
 module.exports = router;

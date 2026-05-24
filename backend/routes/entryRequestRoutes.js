@@ -54,25 +54,69 @@ router.post(
 );
 
 /* =========================
-   GET ALL (ADMIN)
+   GET REQUESTS
 ========================= */
-router.get("/", verifyToken, verifyAdmin, (req, res) => {
-    const sql = `
-    SELECT er.*, v.plate_number
-    FROM entry_requests er
-    LEFT JOIN vehicles v ON er.vehicle_id = v.id
-    ORDER BY er.id DESC
-  `;
+router.get("/", verifyToken, (req, res) => {
 
-    db.query(sql, (err, result) => {
-        if (err) {
-            return res.status(500).json({
-                error: "Failed to fetch requests",
-            });
-        }
+    let sql = "";
 
-        res.json(result);
-    });
+    // ADMIN
+    if (req.user.role === "admin") {
+
+        sql = `
+            SELECT 
+                er.*,
+                v.plate_number
+            FROM entry_requests er
+            LEFT JOIN vehicles v 
+                ON er.vehicle_id = v.id
+            ORDER BY er.id DESC
+        `;
+
+        db.query(sql, (err, result) => {
+
+            if (err) {
+
+                console.log("GET REQUESTS error:", err);
+
+                return res.status(500).json({
+                    error: "Failed to fetch requests",
+                });
+            }
+
+            res.json(result);
+        });
+
+    }
+
+    // GUARD
+    else {
+
+        sql = `
+            SELECT 
+                er.*,
+                v.plate_number
+            FROM entry_requests er
+            LEFT JOIN vehicles v 
+                ON er.vehicle_id = v.id
+            WHERE er.created_by = ?
+            ORDER BY er.id DESC
+        `;
+
+        db.query(sql, [req.user.id], (err, result) => {
+
+            if (err) {
+
+                console.log("GET MY REQUESTS error:", err);
+
+                return res.status(500).json({
+                    error: "Failed to fetch requests",
+                });
+            }
+
+            res.json(result);
+        });
+    }
 });
 
 /* =========================

@@ -1,21 +1,25 @@
 import api from "./axios";
 
-// CREATE ENTRY REQUEST
-export const createEntryRequest = async (data) => {
+/* =========================
+   GET MY REQUESTS
+========================= */
+export const getMyRequests = async () => {
 
-    const response = await api.post(
-        "/guard/entry-request",
-        data
+    const response = await api.get(
+        "/entry-requests"
     );
 
     return response.data;
 };
 
-// GET MY REQUESTS
-export const getMyRequests = async () => {
+/* =========================
+   CREATE REQUEST
+========================= */
+export const createEntryRequest = async (data) => {
 
-    const response = await api.get(
-        "/entry-requests"
+    const response = await api.post(
+        "/entry-requests",
+        data
     );
 
     return response.data;
