@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+
 const verifyToken = require("../middleware/authMiddleware");
 const verifyAdmin = require("../middleware/roleMiddleware");
 
 const handleValidationErrors = require("../middleware/validationMiddleware");
 const { getEntryLogsValidation } = require("../validators/entryLogValidators");
+
 
 /* =========================
    GET LOGS
@@ -17,15 +19,21 @@ router.get(
     getEntryLogsValidation,
     handleValidationErrors,
     (req, res) => {
+
         const { vehicle_id, employee_id, result, from, to } = req.query;
 
         let sql = `
-      SELECT el.*, v.plate_number, e.full_name
-      FROM entry_logs el
-      LEFT JOIN vehicles v ON el.vehicle_id = v.id
-      LEFT JOIN employees e ON el.employee_id = e.id
-      WHERE 1=1
-    `;
+            SELECT
+                el.*,
+                v.plate_number,
+                e.full_name,
+                u.full_name AS guard_name
+            FROM entry_logs el
+                     LEFT JOIN vehicles v ON el.vehicle_id = v.id
+                     LEFT JOIN employees e ON el.employee_id = e.id
+                     LEFT JOIN users u ON el.guard_id = u.id
+            WHERE 1=1
+        `;
 
         const params = [];
 
@@ -57,7 +65,9 @@ router.get(
         sql += ` ORDER BY el.id DESC`;
 
         db.query(sql, params, (err, resultData) => {
+
             if (err) {
+
                 console.log("LOGS error:", err);
 
                 return res.status(500).json({
@@ -78,14 +88,15 @@ router.get(
 router.put(
     "/:id/exit",
     verifyToken,
-    verifyAdmin,
     (req, res) => {
 
         const { id } = req.params;
 
         const sql = `
             UPDATE entry_logs
-            SET exit_time = NOW()
+            SET
+                exit_time = NOW(),
+                current_status = 'outside'
             WHERE id = ?
         `;
 
