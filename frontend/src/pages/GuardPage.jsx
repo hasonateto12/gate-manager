@@ -199,7 +199,7 @@ function GuardPage() {
 
                                 {" "}
 
-                                {vehicleData.company}
+                                {vehicleData.company_name}
                             </Typography>
 
                             <Typography
