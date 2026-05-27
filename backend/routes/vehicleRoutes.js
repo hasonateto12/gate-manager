@@ -1,19 +1,12 @@
 const express = require("express");
+
 const router = express.Router();
 
 const db = require("../config/db");
 
 const verifyToken = require("../middleware/authMiddleware");
+
 const verifyAdmin = require("../middleware/roleMiddleware");
-
-const handleValidationErrors = require("../middleware/validationMiddleware");
-
-const {
-    createVehicleValidation,
-    updateVehicleValidation,
-
-} = require("../validators/vehicleValidators");
-
 
 /* =========================
    GET ALL VEHICLES
@@ -21,94 +14,91 @@ const {
 router.get(
     "/",
     verifyToken,
+    verifyAdmin,
     (req, res) => {
 
         const sql = `
-            SELECT
-                vehicles.*,
-                employees.full_name
+            SELECT *
             FROM vehicles
-                     LEFT JOIN employees
-                               ON vehicles.employee_id = employees.id
-            ORDER BY vehicles.id DESC
+            ORDER BY id DESC
         `;
 
-        db.query(sql, (err, resultData) => {
+        db.query(sql, (err, result) => {
 
             if (err) {
 
-                console.log("GET VEHICLES error:", err);
+                console.log("GET VEHICLES ERROR:", err);
 
                 return res.status(500).json({
-                    error: "Database error",
+                    error: "Failed to fetch vehicles",
                 });
             }
 
-            res.json(resultData);
+            res.json(result);
         });
     }
 );
 
-
 /* =========================
-   CHECK VEHICLE BY PLATE
+   CHECK VEHICLE
 ========================= */
 router.get(
-    "/plate/:plate",
+    "/check/:plateNumber",
     verifyToken,
     (req, res) => {
 
-        const { plate } = req.params;
+        const { plateNumber } = req.params;
 
         const sql = `
-            SELECT
-                vehicles.*,
-                employees.full_name
+            SELECT *
             FROM vehicles
-                     LEFT JOIN employees
-                               ON vehicles.employee_id = employees.id
-            WHERE vehicles.plate_number = ?
+            WHERE plate_number = ?
+                LIMIT 1
         `;
 
-        db.query(sql, [plate], (err, resultData) => {
+        db.query(sql, [plateNumber], (err, result) => {
 
             if (err) {
 
-                console.log("CHECK VEHICLE error:", err);
+                console.log("CHECK VEHICLE ERROR:", err);
 
                 return res.status(500).json({
                     error: "Database error",
                 });
             }
 
-            if (resultData.length === 0) {
+            // NOT FOUND
+            if (result.length === 0) {
 
-                return res.status(404).json({
-                    error: "Vehicle not found",
+                return res.json({
+                    exists: false,
                 });
             }
 
-            res.json(resultData[0]);
+            // FOUND
+            res.json({
+                exists: true,
+                vehicle: result[0],
+            });
         });
     }
 );
 
-
 /* =========================
-   CREATE VEHICLE
+   ADD VEHICLE
 ========================= */
 router.post(
     "/",
     verifyToken,
     verifyAdmin,
-    createVehicleValidation,
-    handleValidationErrors,
     (req, res) => {
 
         const {
             plate_number,
             vehicle_type,
             employee_id,
+            driver_name,
+            company_name,
             status,
         } = req.body;
 
@@ -118,9 +108,11 @@ router.post(
                 plate_number,
                 vehicle_type,
                 employee_id,
+                driver_name,
+                company_name,
                 status
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
         `;
 
         db.query(
@@ -129,29 +121,29 @@ router.post(
                 plate_number,
                 vehicle_type,
                 employee_id,
+                driver_name,
+                company_name,
                 status || "approved",
             ],
-            (err, resultData) => {
+            (err, result) => {
 
                 if (err) {
 
-                    console.log("CREATE VEHICLE error:", err);
+                    console.log("ADD VEHICLE ERROR:", err);
 
                     return res.status(500).json({
-                        error: "Database error",
-                        details: err.message,
+                        error: "Failed to add vehicle",
                     });
                 }
 
                 res.status(201).json({
-                    message: "Vehicle created successfully",
-                    id: resultData.insertId,
+                    message: "Vehicle added successfully",
+                    id: result.insertId,
                 });
             }
         );
     }
 );
-
 
 /* =========================
    UPDATE VEHICLE
@@ -160,8 +152,6 @@ router.put(
     "/:id",
     verifyToken,
     verifyAdmin,
-    updateVehicleValidation,
-    handleValidationErrors,
     (req, res) => {
 
         const { id } = req.params;
@@ -170,6 +160,8 @@ router.put(
             plate_number,
             vehicle_type,
             employee_id,
+            driver_name,
+            company_name,
             status,
         } = req.body;
 
@@ -179,6 +171,8 @@ router.put(
                 plate_number = ?,
                 vehicle_type = ?,
                 employee_id = ?,
+                driver_name = ?,
+                company_name = ?,
                 status = ?
             WHERE id = ?
         `;
@@ -189,25 +183,19 @@ router.put(
                 plate_number,
                 vehicle_type,
                 employee_id,
+                driver_name,
+                company_name,
                 status,
                 id,
             ],
-            (err, resultData) => {
+            (err, result) => {
 
                 if (err) {
 
-                    console.log("UPDATE VEHICLE error:", err);
+                    console.log("UPDATE VEHICLE ERROR:", err);
 
                     return res.status(500).json({
-                        error: "Database error",
-                        details: err.message,
-                    });
-                }
-
-                if (resultData.affectedRows === 0) {
-
-                    return res.status(404).json({
-                        error: "Vehicle not found",
+                        error: "Failed to update vehicle",
                     });
                 }
 
@@ -218,7 +206,6 @@ router.put(
         );
     }
 );
-
 
 /* =========================
    DELETE VEHICLE
@@ -236,82 +223,19 @@ router.delete(
             WHERE id = ?
         `;
 
-        db.query(sql, [id], (err, resultData) => {
+        db.query(sql, [id], (err, result) => {
 
             if (err) {
 
-                console.log("DELETE VEHICLE error:", err);
+                console.log("DELETE VEHICLE ERROR:", err);
 
                 return res.status(500).json({
-                    error: "Database error",
-                    details: err.message,
-                });
-            }
-
-            if (resultData.affectedRows === 0) {
-
-                return res.status(404).json({
-                    error: "Vehicle not found",
+                    error: "Failed to delete vehicle",
                 });
             }
 
             res.json({
                 message: "Vehicle deleted successfully",
-            });
-        });
-    }
-);
-
-
-/* =========================
-   CHECK VEHICLE
-========================= */
-router.get(
-    "/check/:plate",
-    verifyToken,
-    (req, res) => {
-
-        const { plate } = req.params;
-
-        const sql = `
-            SELECT
-                v.*,
-                e.full_name
-            FROM vehicles v
-
-            LEFT JOIN employees e
-                ON v.employee_id = e.id
-
-            WHERE v.plate_number = ?
-        `;
-
-        db.query(sql, [plate], (err, resultData) => {
-
-            if (err) {
-
-                console.log(
-                    "CHECK VEHICLE error:",
-                    err
-                );
-
-                return res.status(500).json({
-                    error: "Failed to check vehicle",
-                });
-            }
-
-            // רכב לא קיים
-            if (resultData.length === 0) {
-
-                return res.status(404).json({
-                    exists: false,
-                    message: "Vehicle not found",
-                });
-            }
-
-            // רכב קיים
-            res.json({
-                exists: true,
-                vehicle: resultData[0],
             });
         });
     }
