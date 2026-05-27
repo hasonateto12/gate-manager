@@ -1,86 +1,120 @@
 const express = require("express");
+
 const router = express.Router();
+
 const db = require("../config/db");
 
 const verifyToken = require("../middleware/authMiddleware");
+
 const verifyAdmin = require("../middleware/roleMiddleware");
 
-const handleValidationErrors = require("../middleware/validationMiddleware");
-const { getEntryLogsValidation } = require("../validators/entryLogValidators");
-
-
 /* =========================
-   GET LOGS
+   GET ENTRY LOGS
 ========================= */
 router.get(
     "/",
     verifyToken,
     verifyAdmin,
-    getEntryLogsValidation,
-    handleValidationErrors,
     (req, res) => {
 
-        const { vehicle_id, employee_id, result, from, to } = req.query;
-
-        let sql = `
+        const sql = `
             SELECT
-                el.*,
-                v.plate_number,
-                e.full_name,
-                u.full_name AS guard_name
-            FROM entry_logs el
-                     LEFT JOIN vehicles v ON el.vehicle_id = v.id
-                     LEFT JOIN employees e ON el.employee_id = e.id
-                     LEFT JOIN users u ON el.guard_id = u.id
-            WHERE 1=1
+                entry_logs.*,
+                vehicles.plate_number,
+                vehicles.driver_name,
+                vehicles.company_name
+            FROM entry_logs
+            LEFT JOIN vehicles
+                ON entry_logs.vehicle_id = vehicles.id
+            ORDER BY entry_logs.id DESC
         `;
 
-        const params = [];
-
-        if (vehicle_id) {
-            sql += ` AND el.vehicle_id = ?`;
-            params.push(vehicle_id);
-        }
-
-        if (employee_id) {
-            sql += ` AND el.employee_id = ?`;
-            params.push(employee_id);
-        }
-
-        if (result) {
-            sql += ` AND el.result = ?`;
-            params.push(result);
-        }
-
-        if (from) {
-            sql += ` AND el.entry_time >= ?`;
-            params.push(from);
-        }
-
-        if (to) {
-            sql += ` AND el.entry_time <= ?`;
-            params.push(to);
-        }
-
-        sql += ` ORDER BY el.id DESC`;
-
-        db.query(sql, params, (err, resultData) => {
+        db.query(sql, (err, result) => {
 
             if (err) {
 
-                console.log("LOGS error:", err);
+                console.log(
+                    "GET LOGS ERROR:",
+                    err
+                );
 
                 return res.status(500).json({
-                    error: "Failed to fetch logs",
-                    details: err.message,
+                    error:
+                        "Failed to fetch logs",
                 });
             }
 
-            res.json(resultData);
+            res.json(result);
         });
     }
 );
 
+/* =========================
+   CREATE ENTRY
+========================= */
+router.post(
+    "/",
+    verifyToken,
+    (req, res) => {
+
+        const {
+            vehicle_id,
+            notes,
+        } = req.body;
+
+        const sql = `
+            INSERT INTO entry_logs
+            (
+                vehicle_id,
+                notes,
+                action_type,
+                result,
+                current_status,
+                guard_id,
+                entry_time
+            )
+            VALUES
+                (
+                    ?,
+                    ?,
+                    'Entry',
+                    'Approved',
+                    'inside',
+                    ?,
+                    NOW()
+                )
+        `;
+
+        db.query(
+            sql,
+            [
+                vehicle_id,
+                notes,
+                req.user.id,
+            ],
+            (err, result) => {
+
+                if (err) {
+
+                    console.log(
+                        "CREATE ENTRY ERROR:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        error:
+                            "Failed to create entry",
+                    });
+                }
+
+                res.status(201).json({
+                    message:
+                        "Vehicle entered successfully",
+                });
+            }
+        );
+    }
+);
 
 /* =========================
    VEHICLE EXIT
@@ -95,34 +129,35 @@ router.put(
         const sql = `
             UPDATE entry_logs
             SET
-                exit_time = NOW(),
-                current_status = 'outside'
+                current_status = 'outside',
+                exit_time = NOW()
             WHERE id = ?
         `;
 
-        db.query(sql, [id], (err, resultData) => {
+        db.query(
+            sql,
+            [id],
+            (err, result) => {
 
-            if (err) {
+                if (err) {
 
-                console.log("EXIT error:", err);
+                    console.log(
+                        "EXIT ERROR:",
+                        err
+                    );
 
-                return res.status(500).json({
-                    error: "Failed to update exit time",
-                    details: err.message,
+                    return res.status(500).json({
+                        error:
+                            "Failed to update exit",
+                    });
+                }
+
+                res.json({
+                    message:
+                        "Vehicle exited successfully",
                 });
             }
-
-            if (resultData.affectedRows === 0) {
-
-                return res.status(404).json({
-                    error: "Log not found",
-                });
-            }
-
-            res.json({
-                message: "Vehicle exit updated successfully",
-            });
-        });
+        );
     }
 );
 
