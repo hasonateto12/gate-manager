@@ -1,16 +1,17 @@
 const express = require("express");
 const router = express.Router();
+
 const db = require("../config/db");
+
 const verifyToken = require("../middleware/authMiddleware");
 const verifyAdmin = require("../middleware/roleMiddleware");
 
 const handleValidationErrors = require("../middleware/validationMiddleware");
 
 const {
-    entryRequestIdValidation,
     createEntryRequestValidation,
-    updateEntryRequestStatusValidation,
 } = require("../validators/entryRequestValidators");
+
 
 /* =========================
    CREATE REQUEST
@@ -21,207 +22,282 @@ router.post(
     createEntryRequestValidation,
     handleValidationErrors,
     (req, res) => {
-        const { vehicle_id, notes } = req.body;
+
+        const {
+            vehicle_id,
+            employee_id,
+            reason,
+            notes,
+        } = req.body;
 
         const sql = `
-      INSERT INTO entry_requests (vehicle_id, request_time, status, notes)
-      VALUES (?, NOW(), 'pending', ?)
-    `;
+            INSERT INTO entry_requests
+            (
+                vehicle_id,
+                employee_id,
+                reason,
+                status,
+                created_by,
+                request_time,
+                notes
+            )
+            VALUES (?, ?, ?, 'pending', ?, NOW(), ?)
+        `;
 
-        db.query(sql, [vehicle_id, notes || null], (err, result) => {
-            if (err) {
-                console.log("CREATE REQUEST error:", err);
+        db.query(
+            sql,
+            [
+                vehicle_id || null,
+                employee_id || null,
+                reason,
+                req.user.id,
+                notes || null,
+            ],
+            (err, resultData) => {
 
-                if (err.code === "ER_NO_REFERENCED_ROW_2") {
-                    return res.status(400).json({
-                        error: "Invalid vehicle ID",
-                        details: "The selected vehicle does not exist.",
+                if (err) {
+
+                    console.log(
+                        "CREATE REQUEST error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        error: "Failed to create request",
+                        details: err.message,
                     });
                 }
 
-                return res.status(500).json({
-                    error: "Failed to create request",
-                    details: err.message,
+                res.status(201).json({
+                    message: "Request created successfully",
+                    id: resultData.insertId,
                 });
             }
-
-            res.status(201).json({
-                message: "Request created",
-                request_id: result.insertId,
-            });
-        });
+        );
     }
 );
+
 
 /* =========================
    GET REQUESTS
 ========================= */
-router.get("/", verifyToken, (req, res) => {
+router.get(
+    "/",
+    verifyToken,
+    (req, res) => {
 
-    let sql = "";
+        let sql = "";
+        let params = [];
 
-    // ADMIN
-    if (req.user.role === "admin") {
+        // ADMIN
+        if (req.user.role === "admin") {
 
-        sql = `
-            SELECT 
-                er.*,
-                v.plate_number
-            FROM entry_requests er
-            LEFT JOIN vehicles v 
-                ON er.vehicle_id = v.id
-            ORDER BY er.id DESC
-        `;
+            sql = `
+                SELECT
+                    er.*,
+                    v.plate_number,
+                    e.full_name
+                FROM entry_requests er
 
-        db.query(sql, (err, result) => {
+                         LEFT JOIN vehicles v
+                                   ON er.vehicle_id = v.id
+
+                         LEFT JOIN employees e
+                                   ON er.employee_id = e.id
+
+                WHERE er.status = 'pending'
+
+                ORDER BY er.id DESC
+            `;
+        }
+
+        // GUARD
+        else {
+
+            sql = `
+                SELECT
+                    er.*,
+                    v.plate_number,
+                    e.full_name
+                FROM entry_requests er
+
+                         LEFT JOIN vehicles v
+                                   ON er.vehicle_id = v.id
+
+                         LEFT JOIN employees e
+                                   ON er.employee_id = e.id
+
+                WHERE er.created_by = ?
+
+                ORDER BY er.id DESC
+            `;
+
+            params.push(req.user.id);
+        }
+
+        db.query(sql, params, (err, resultData) => {
 
             if (err) {
 
-                console.log("GET REQUESTS error:", err);
+                console.log(
+                    "GET REQUESTS error:",
+                    err
+                );
 
                 return res.status(500).json({
                     error: "Failed to fetch requests",
+                    details: err.message,
                 });
             }
 
-            res.json(result);
-        });
-
-    }
-
-    // GUARD
-    else {
-
-        sql = `
-            SELECT 
-                er.*,
-                v.plate_number
-            FROM entry_requests er
-            LEFT JOIN vehicles v 
-                ON er.vehicle_id = v.id
-            WHERE er.created_by = ?
-            ORDER BY er.id DESC
-        `;
-
-        db.query(sql, [req.user.id], (err, result) => {
-
-            if (err) {
-
-                console.log("GET MY REQUESTS error:", err);
-
-                return res.status(500).json({
-                    error: "Failed to fetch requests",
-                });
-            }
-
-            res.json(result);
+            res.json(resultData);
         });
     }
-});
+);
+
 
 /* =========================
-   APPROVE / REJECT
+   APPROVE REQUEST
 ========================= */
 router.put(
-    "/:id/status",
+    "/:id/approve",
     verifyToken,
     verifyAdmin,
-    entryRequestIdValidation,
-    updateEntryRequestStatusValidation,
-    handleValidationErrors,
     (req, res) => {
-        const { id } = req.params;
-        const { status, rejection_reason } = req.body;
 
-        // Step 1: update request
+        const { id } = req.params;
+
+        // UPDATE REQUEST
         const updateSql = `
-      UPDATE entry_requests
-      SET status = ?, approved_by = ?, rejection_reason = ?
-      WHERE id = ?
-    `;
+            UPDATE entry_requests
+            SET
+                status = 'approved',
+                approved_by = ?
+            WHERE id = ?
+        `;
 
         db.query(
             updateSql,
-            [status, req.user.id, rejection_reason || null, id],
-            (updateErr, updateResult) => {
+            [req.user.id, id],
+            (updateErr) => {
+
                 if (updateErr) {
-                    console.log("UPDATE STATUS error:", updateErr);
+
+                    console.log(
+                        "APPROVE REQUEST error:",
+                        updateErr
+                    );
 
                     return res.status(500).json({
-                        error: "Failed to update request status",
+                        error: "Failed to approve request",
                     });
                 }
 
-                if (updateResult.affectedRows === 0) {
-                    return res.status(404).json({
-                        error: "Request not found",
-                    });
-                }
-
-                // Step 2: get request + vehicle employee
+                // GET REQUEST DATA
                 const fetchSql = `
-          SELECT 
-            er.vehicle_id,
-            er.notes,
-            v.employee_id
-          FROM entry_requests er
-          LEFT JOIN vehicles v ON er.vehicle_id = v.id
-          WHERE er.id = ?
-        `;
+                    SELECT *
+                    FROM entry_requests
+                    WHERE id = ?
+                `;
 
-                db.query(fetchSql, [id], (fetchErr, requestData) => {
-                    if (fetchErr) {
-                        console.log("FETCH REQUEST error:", fetchErr);
+                db.query(
+                    fetchSql,
+                    [id],
+                    (fetchErr, requestData) => {
 
-                        return res.status(500).json({
-                            error: "Failed to fetch request data",
-                        });
-                    }
+                        if (fetchErr) {
 
-                    if (requestData.length === 0) {
-                        return res.status(404).json({
-                            error: "Request data not found",
-                        });
-                    }
-
-                    const request = requestData[0];
-
-                    // Step 3: insert log
-                    const logSql = `
-            INSERT INTO entry_logs (
-              vehicle_id,
-              employee_id,
-              entry_time,
-              result,
-              handled_by,
-              notes
-            )
-            VALUES (?, ?, NOW(), ?, ?, ?)
-          `;
-
-                    db.query(
-                        logSql,
-                        [
-                            request.vehicle_id,
-                            request.employee_id || null,
-                            status,
-                            req.user.id,
-                            request.notes || null,
-                        ],
-                        (logErr) => {
-                            if (logErr) {
-                                console.log("LOG INSERT error:", logErr);
-
-                                return res.status(500).json({
-                                    error: "Request updated but failed to create log",
-                                });
-                            }
-
-                            res.json({
-                                message: `Request ${status} and log created successfully`,
+                            return res.status(500).json({
+                                error: "Failed to fetch request",
                             });
                         }
+
+                        const request = requestData[0];
+
+                        // INSERT VEHICLE
+                        const vehicleSql = `
+                            INSERT INTO vehicles
+                            (
+                                plate_number,
+                                vehicle_type,
+                                employee_id,
+                                status
+                            )
+                            VALUES (?, ?, ?, 'approved')
+                        `;
+
+                        db.query(
+                            vehicleSql,
+                            [
+                                request.plate_number || null,
+                                "פרטי",
+                                request.employee_id || null,
+                            ],
+                            (vehicleErr) => {
+
+                                if (vehicleErr) {
+
+                                    console.log(
+                                        "CREATE VEHICLE error:",
+                                        vehicleErr
+                                    );
+
+                                    return res.status(500).json({
+                                        error: "Request approved but failed to create vehicle",
+                                    });
+                                }
+
+                                res.json({
+                                    message: "Request approved successfully",
+                                });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    }
+);
+
+
+/* =========================
+   REJECT REQUEST
+========================= */
+router.put(
+    "/:id/reject",
+    verifyToken,
+    verifyAdmin,
+    (req, res) => {
+
+        const { id } = req.params;
+
+        const sql = `
+            UPDATE entry_requests
+            SET
+                status = 'rejected',
+                approved_by = ?
+            WHERE id = ?
+        `;
+
+        db.query(
+            sql,
+            [req.user.id, id],
+            (err, resultData) => {
+
+                if (err) {
+
+                    console.log(
+                        "REJECT REQUEST error:",
+                        err
                     );
+
+                    return res.status(500).json({
+                        error: "Failed to reject request",
+                    });
+                }
+
+                res.json({
+                    message: "Request rejected successfully",
                 });
             }
         );

@@ -262,4 +262,59 @@ router.delete(
     }
 );
 
+
+/* =========================
+   CHECK VEHICLE
+========================= */
+router.get(
+    "/check/:plate",
+    verifyToken,
+    (req, res) => {
+
+        const { plate } = req.params;
+
+        const sql = `
+            SELECT
+                v.*,
+                e.full_name
+            FROM vehicles v
+
+            LEFT JOIN employees e
+                ON v.employee_id = e.id
+
+            WHERE v.plate_number = ?
+        `;
+
+        db.query(sql, [plate], (err, resultData) => {
+
+            if (err) {
+
+                console.log(
+                    "CHECK VEHICLE error:",
+                    err
+                );
+
+                return res.status(500).json({
+                    error: "Failed to check vehicle",
+                });
+            }
+
+            // רכב לא קיים
+            if (resultData.length === 0) {
+
+                return res.status(404).json({
+                    exists: false,
+                    message: "Vehicle not found",
+                });
+            }
+
+            // רכב קיים
+            res.json({
+                exists: true,
+                vehicle: resultData[0],
+            });
+        });
+    }
+);
+
 module.exports = router;
