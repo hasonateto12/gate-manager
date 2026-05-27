@@ -1,14 +1,10 @@
 import {
-
     useEffect,
     useState,
-
 } from "react";
 
-import api from "../api/axios";
-
 import {
-
+    Box,
     Typography,
     Paper,
     Table,
@@ -17,269 +13,119 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    CircularProgress,
-    Alert,
-    Box,
-    TextField,
-    Chip,
-    Stack,
     Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Snackbar,
-
+    Chip,
+    Alert,
 } from "@mui/material";
 
+import api from "../api/axios";
 
 function EntryRequestsPage() {
 
     const [requests, setRequests] = useState([]);
 
-    const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState("");
 
-    const [error, setError] = useState("");
+    const [messageType, setMessageType] =
+        useState("success");
 
-    const [search, setSearch] = useState("");
-
-    const [snackbar, setSnackbar] = useState({
-
-        open: false,
-        message: "",
-    });
-
-
-    // REJECT DIALOG
-
-    const [openRejectDialog, setOpenRejectDialog] =
-        useState(false);
-
-    const [selectedRequest, setSelectedRequest] =
-        useState(null);
-
-    const [rejectionReason, setRejectionReason] =
-        useState("");
-
-
-    useEffect(() => {
-
-        fetchRequests();
-
-    }, []);
-
-
-    const fetchRequests = async () => {
+    /* =========================
+       LOAD REQUESTS
+    ========================= */
+    const loadRequests = async () => {
 
         try {
 
-            setLoading(true);
-
             const response =
-                await api.get("/entry-requests");
+                await api.get(
+                    "/entry-requests"
+                );
 
             setRequests(response.data);
 
         } catch (error) {
 
-            console.error(error);
+            console.log(error);
 
-            setError("שגיאה בטעינת בקשות");
+            setMessage(
+                "שגיאה בטעינת בקשות"
+            );
 
-        } finally {
-
-            setLoading(false);
+            setMessageType("error");
         }
     };
 
+    useEffect(() => {
 
-    // STATUS CHIP
+        loadRequests();
 
-    const getStatusChip = (status) => {
+    }, []);
 
-        if (status === "approved") {
-
-            return (
-                <Chip
-                    label="מאושר"
-                    color="success"
-                />
-            );
-        }
-
-        if (status === "pending") {
-
-            return (
-                <Chip
-                    label="ממתין"
-                    color="warning"
-                />
-            );
-        }
-
-        if (status === "rejected") {
-
-            return (
-                <Chip
-                    label="נדחה"
-                    color="error"
-                />
-            );
-        }
-
-        return (
-            <Chip
-                label={status}
-            />
-        );
-    };
-
-
-    // APPROVE
-
-    const handleApprove = async (requestId) => {
+    /* =========================
+       APPROVE
+    ========================= */
+    const handleApprove = async (id) => {
 
         try {
 
             await api.put(
-
-                `/entry-requests/${requestId}/status`,
-
-                {
-                    status: "approved",
-                }
+                `/entry-requests/${id}/approve`
             );
 
-            await fetchRequests();
+            setMessage(
+                "בקשה אושרה בהצלחה"
+            );
 
-            setSnackbar({
+            setMessageType("success");
 
-                open: true,
-                message: "הבקשה אושרה",
-            });
+            loadRequests();
 
         } catch (error) {
 
-            console.error(error);
+            console.log(error);
 
-            setSnackbar({
+            setMessage(
+                "שגיאה באישור בקשה"
+            );
 
-                open: true,
-                message: "שגיאה באישור בקשה",
-            });
+            setMessageType("error");
         }
     };
 
-
-    // REJECT
-
-    const handleOpenRejectDialog = (request) => {
-
-        setSelectedRequest(request);
-
-        setOpenRejectDialog(true);
-    };
-
-
-    const handleReject = async () => {
+    /* =========================
+       REJECT
+    ========================= */
+    const handleReject = async (id) => {
 
         try {
 
             await api.put(
-
-                `/entry-requests/${selectedRequest.id}/status`,
-
-                {
-                    status: "rejected",
-
-                    rejection_reason:
-                    rejectionReason,
-                }
+                `/entry-requests/${id}/reject`
             );
 
-            await fetchRequests();
+            setMessage(
+                "בקשה נדחתה"
+            );
 
-            setSnackbar({
+            setMessageType("warning");
 
-                open: true,
-                message: "הבקשה נדחתה",
-            });
-
-            setOpenRejectDialog(false);
-
-            setRejectionReason("");
+            loadRequests();
 
         } catch (error) {
 
-            console.error(error);
+            console.log(error);
 
-            setSnackbar({
+            setMessage(
+                "שגיאה בדחיית בקשה"
+            );
 
-                open: true,
-                message: "שגיאה בדחיית בקשה",
-            });
+            setMessageType("error");
         }
     };
-
-
-    // SEARCH
-
-    const filteredRequests = requests.filter((request) => {
-
-        const plate =
-            request.plate_number?.toLowerCase() || "";
-
-        const notes =
-            request.notes?.toLowerCase() || "";
-
-        return (
-
-            plate.includes(search.toLowerCase()) ||
-
-            notes.includes(search.toLowerCase())
-        );
-    });
-
-
-    // LOADING
-
-    if (loading) {
-
-        return (
-
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    mt: 5,
-                }}
-            >
-
-                <CircularProgress />
-
-            </Box>
-        );
-    }
-
-
-    // ERROR
-
-    if (error) {
-
-        return (
-
-            <Alert severity="error">
-
-                {error}
-
-            </Alert>
-        );
-    }
-
 
     return (
 
-        <Box>
+        <Box sx={{ p: 4 }}>
 
             <Typography
                 variant="h4"
@@ -289,20 +135,22 @@ function EntryRequestsPage() {
                 בקשות כניסה
             </Typography>
 
+            {
 
-            <TextField
-                fullWidth
-                label="חיפוש בקשה"
-                variant="outlined"
-                sx={{ mb: 3 }}
-                value={search}
-                onChange={(e) =>
-                    setSearch(e.target.value)
-                }
-            />
+                message && (
 
+                    <Alert
+                        severity={messageType}
+                        sx={{ mb: 3 }}
+                    >
+                        {message}
+                    </Alert>
+                )
+            }
 
-            <TableContainer component={Paper}>
+            <TableContainer
+                component={Paper}
+            >
 
                 <Table>
 
@@ -311,15 +159,15 @@ function EntryRequestsPage() {
                         <TableRow>
 
                             <TableCell>
-                                מזהה
-                            </TableCell>
-
-                            <TableCell>
                                 מספר רכב
                             </TableCell>
 
                             <TableCell>
-                                תאריך בקשה
+                                נהג
+                            </TableCell>
+
+                            <TableCell>
+                                חברה
                             </TableCell>
 
                             <TableCell>
@@ -338,174 +186,87 @@ function EntryRequestsPage() {
 
                     </TableHead>
 
-
                     <TableBody>
 
-                        {filteredRequests.map((request) => (
+                        {
 
-                            <TableRow
-                                key={request.id}
-                            >
+                            requests.map((request) => (
 
-                                <TableCell>
-                                    {request.id}
-                                </TableCell>
+                                <TableRow
+                                    key={request.id}
+                                >
 
-                                <TableCell>
-                                    {request.plate_number}
-                                </TableCell>
+                                    <TableCell>
+                                        {
+                                            request.plate_number
+                                        }
+                                    </TableCell>
 
-                                <TableCell>
+                                    <TableCell>
+                                        {
+                                            request.driver_name
+                                        }
+                                    </TableCell>
 
-                                    {
+                                    <TableCell>
+                                        {
+                                            request.company_name
+                                        }
+                                    </TableCell>
 
-                                        new Date(
-                                            request.request_time
-                                        ).toLocaleString("he-IL")
-                                    }
+                                    <TableCell>
+                                        {
+                                            request.notes
+                                        }
+                                    </TableCell>
 
-                                </TableCell>
+                                    <TableCell>
 
-                                <TableCell>
-                                    {request.notes}
-                                </TableCell>
+                                        <Chip
+                                            label="ממתין"
+                                            color="warning"
+                                        />
 
-                                <TableCell>
+                                    </TableCell>
 
-                                    {getStatusChip(
-                                        request.status
-                                    )}
+                                    <TableCell>
 
-                                </TableCell>
+                                        <Button
+                                            variant="contained"
+                                            color="success"
+                                            sx={{ mr: 1 }}
+                                            onClick={() =>
+                                                handleApprove(
+                                                    request.id
+                                                )
+                                            }
+                                        >
+                                            אשר
+                                        </Button>
 
+                                        <Button
+                                            variant="contained"
+                                            color="error"
+                                            onClick={() =>
+                                                handleReject(
+                                                    request.id
+                                                )
+                                            }
+                                        >
+                                            דחה
+                                        </Button>
 
-                                <TableCell>
+                                    </TableCell>
 
-                                    {
-
-                                        request.status === "pending" && (
-
-                                            <Stack
-                                                direction="row"
-                                                spacing={1}
-                                            >
-
-                                                <Button
-                                                    variant="contained"
-                                                    color="success"
-                                                    size="small"
-                                                    onClick={() =>
-                                                        handleApprove(
-                                                            request.id
-                                                        )
-                                                    }
-                                                >
-                                                    אשר
-                                                </Button>
-
-
-                                                <Button
-                                                    variant="contained"
-                                                    color="error"
-                                                    size="small"
-                                                    onClick={() =>
-                                                        handleOpenRejectDialog(
-                                                            request
-                                                        )
-                                                    }
-                                                >
-                                                    דחה
-                                                </Button>
-
-                                            </Stack>
-                                        )
-                                    }
-
-                                </TableCell>
-
-                            </TableRow>
-                        ))}
+                                </TableRow>
+                            ))
+                        }
 
                     </TableBody>
 
                 </Table>
 
             </TableContainer>
-
-
-            {/* REJECT DIALOG */}
-
-            <Dialog
-                open={openRejectDialog}
-                onClose={() =>
-                    setOpenRejectDialog(false)
-                }
-                fullWidth
-            >
-
-                <DialogTitle>
-
-                    דחיית בקשה
-
-                </DialogTitle>
-
-
-                <DialogContent>
-
-                    <TextField
-                        fullWidth
-                        multiline
-                        rows={4}
-                        margin="normal"
-                        label="סיבת דחייה"
-                        value={rejectionReason}
-                        onChange={(e) =>
-                            setRejectionReason(
-                                e.target.value
-                            )
-                        }
-                    />
-
-                </DialogContent>
-
-
-                <DialogActions>
-
-                    <Button
-                        onClick={() =>
-                            setOpenRejectDialog(false)
-                        }
-                    >
-                        ביטול
-                    </Button>
-
-
-                    <Button
-                        color="error"
-                        variant="contained"
-                        onClick={handleReject}
-                    >
-                        דחה בקשה
-                    </Button>
-
-                </DialogActions>
-
-            </Dialog>
-
-
-            {/* SNACKBAR */}
-
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                message={snackbar.message}
-                onClose={() =>
-                    setSnackbar({
-                        ...snackbar,
-                        open: false,
-                    })
-                }
-            />
 
         </Box>
     );
