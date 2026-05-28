@@ -21,6 +21,7 @@ import {
 
 import {
     checkVehicle,
+    createEntryRequest,
 } from "../api/vehicleCheckApi";
 
 import api from "../api/axios";
@@ -44,6 +45,16 @@ export default function GuardPage() {
 
     const [insideVehicles, setInsideVehicles] =
         useState([]);
+
+    // NEW VEHICLE
+    const [driverName, setDriverName] =
+        useState("");
+
+    const [companyName, setCompanyName] =
+        useState("");
+
+    const [newVehicleMode, setNewVehicleMode] =
+        useState(false);
 
     /* =========================
        LOAD INSIDE VEHICLES
@@ -84,11 +95,14 @@ export default function GuardPage() {
 
             setVehicleData(null);
 
+            setNewVehicleMode(false);
+
             const data =
                 await checkVehicle(
                     plateNumber
                 );
 
+            // NOT EXISTS
             if (!data.exists) {
 
                 setMessage(
@@ -98,6 +112,8 @@ export default function GuardPage() {
                 setMessageType(
                     "warning"
                 );
+
+                setNewVehicleMode(true);
 
                 return;
             }
@@ -229,6 +245,60 @@ export default function GuardPage() {
             }
         };
 
+    /* =========================
+       CREATE NEW REQUEST
+    ========================= */
+    const handleCreateRequest =
+        async () => {
+
+            try {
+
+                await createEntryRequest({
+
+                    plate_number:
+                    plateNumber,
+
+                    driver_name:
+                    driverName,
+
+                    company_name:
+                    companyName,
+
+                    notes,
+                });
+
+                setMessage(
+                    "בקשה נשלחה למנהל"
+                );
+
+                setMessageType(
+                    "success"
+                );
+
+                setNewVehicleMode(false);
+
+                setDriverName("");
+
+                setCompanyName("");
+
+                setNotes("");
+
+                setPlateNumber("");
+
+            } catch (error) {
+
+                console.log(error);
+
+                setMessage(
+                    "שגיאה בשליחת בקשה"
+                );
+
+                setMessageType(
+                    "error"
+                );
+            }
+        };
+
     return (
 
         <Box sx={{ p: 4 }}>
@@ -300,6 +370,8 @@ export default function GuardPage() {
                         </Alert>
                     )
                 }
+
+                {/* APPROVED VEHICLE */}
 
                 {
 
@@ -392,11 +464,83 @@ export default function GuardPage() {
                     )
                 }
 
+                {/* NEW VEHICLE REQUEST */}
+
+                {
+
+                    newVehicleMode && (
+
+                        <Paper
+                            sx={{
+                                p: 3,
+                                mt: 3,
+                                backgroundColor:
+                                    "#fff8e1",
+                            }}
+                        >
+
+                            <Typography
+                                variant="h6"
+                                mb={3}
+                            >
+                                רכב חדש - בקשת אישור
+                            </Typography>
+
+                            <TextField
+                                fullWidth
+                                label="שם נהג"
+                                value={driverName}
+                                onChange={(e) =>
+                                    setDriverName(
+                                        e.target.value
+                                    )
+                                }
+                                sx={{ mb: 2 }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                label="חברה"
+                                value={companyName}
+                                onChange={(e) =>
+                                    setCompanyName(
+                                        e.target.value
+                                    )
+                                }
+                                sx={{ mb: 2 }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                label="מטרת כניסה"
+                                value={notes}
+                                onChange={(e) =>
+                                    setNotes(
+                                        e.target.value
+                                    )
+                                }
+                                sx={{ mb: 2 }}
+                            />
+
+                            <Button
+                                variant="contained"
+                                color="warning"
+                                onClick={
+                                    handleCreateRequest
+                                }
+                            >
+                                שלח בקשת אישור
+                            </Button>
+
+                        </Paper>
+                    )
+                }
+
             </Paper>
 
-            {/* =========================
-               INSIDE VEHICLES
-            ========================= */}
+            {/* INSIDE VEHICLES */}
 
             <Paper
                 sx={{

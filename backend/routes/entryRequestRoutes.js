@@ -23,7 +23,8 @@ router.post(
             notes,
         } = req.body;
 
-        const sql = `
+        // CREATE REQUEST
+        const requestSql = `
             INSERT INTO entry_requests
             (
                 plate_number,
@@ -37,31 +38,110 @@ router.post(
         `;
 
         db.query(
-            sql,
+            requestSql,
             [
                 plate_number,
                 driver_name,
                 company_name,
                 notes,
             ],
-            (err, result) => {
+            (requestErr) => {
 
-                if (err) {
+                if (requestErr) {
 
-                    console.log(
-                        "CREATE REQUEST ERROR:",
-                        err
-                    );
+                    console.log(requestErr);
 
                     return res.status(500).json({
-                        error: "Failed to create request",
+                        error:
+                            "Failed to create request",
                     });
                 }
 
-                res.status(201).json({
-                    message:
-                        "Request created successfully",
-                });
+                // CREATE TEMP VEHICLE
+                const vehicleSql = `
+                    INSERT INTO vehicles
+                    (
+                        plate_number,
+                        driver_name,
+                        company_name,
+                        status
+                    )
+                    VALUES (?, ?, ?, 'pending')
+                `;
+
+                db.query(
+                    vehicleSql,
+                    [
+                        plate_number,
+                        driver_name,
+                        company_name,
+                    ],
+                    (
+                        vehicleErr,
+                        vehicleResult
+                    ) => {
+
+                        if (vehicleErr) {
+
+                            console.log(vehicleErr);
+
+                            return res.status(500).json({
+                                error:
+                                    "Failed to create vehicle",
+                            });
+                        }
+
+                        // CREATE ENTRY LOG
+                        const logSql = `
+                            INSERT INTO entry_logs
+                            (
+                                vehicle_id,
+                                notes,
+                                action_type,
+                                result,
+                                current_status,
+                                guard_id,
+                                entry_time
+                            )
+                            VALUES
+                            (
+                                ?,
+                                ?,
+                                'Entry',
+                                'Pending',
+                                'inside',
+                                ?,
+                                NOW()
+                            )
+                        `;
+
+                        db.query(
+                            logSql,
+                            [
+                                vehicleResult.insertId,
+                                notes,
+                                req.user.id,
+                            ],
+                            (logErr) => {
+
+                                if (logErr) {
+
+                                    console.log(logErr);
+
+                                    return res.status(500).json({
+                                        error:
+                                            "Failed to create entry log",
+                                    });
+                                }
+
+                                res.status(201).json({
+                                    message:
+                                        "Request created successfully",
+                                });
+                            }
+                        );
+                    }
+                );
             }
         );
     }
@@ -121,84 +201,130 @@ router.put(
             WHERE id = ?
         `;
 
-        db.query(getSql, [id], (err, rows) => {
+        db.query(
+            getSql,
+            [id],
+            (getErr, requestResult) => {
 
-            if (err || rows.length === 0) {
+                if (getErr) {
 
-                return res.status(404).json({
-                    error: "Request not found",
-                });
-            }
+                    console.log(getErr);
 
-            const request = rows[0];
+                    return res.status(500).json({
+                        error:
+                            "Failed to get request",
+                    });
+                }
 
-            // ADD VEHICLE
-            const vehicleSql = `
-                INSERT INTO vehicles
-                (
-                    plate_number,
-                    driver_name,
-                    company_name,
-                    status
-                )
-                VALUES (?, ?, ?, 'approved')
-            `;
+                if (
+                    requestResult.length === 0
+                ) {
 
-            db.query(
-                vehicleSql,
-                [
-                    request.plate_number,
-                    request.driver_name,
-                    request.company_name,
-                ],
-                (vehicleErr) => {
+                    return res.status(404).json({
+                        error:
+                            "Request not found",
+                    });
+                }
 
-                    if (vehicleErr) {
+                const request =
+                    requestResult[0];
 
-                        console.log(vehicleErr);
+                // UPDATE REQUEST
+                const updateRequestSql = `
+                    UPDATE entry_requests
+                    SET
+                        status = 'approved',
+                        handled_by = ?
+                    WHERE id = ?
+                `;
 
-                        return res.status(500).json({
-                            error:
-                                "Failed to add vehicle",
-                        });
-                    }
+                db.query(
+                    updateRequestSql,
+                    [
+                        req.user.id,
+                        id,
+                    ],
+                    (updateErr) => {
 
-                    // UPDATE REQUEST
-                    const updateSql = `
-                        UPDATE entry_requests
-                        SET
-                            status = 'approved',
-                            handled_by = ?
-                        WHERE id = ?
-                    `;
+                        if (updateErr) {
 
-                    db.query(
-                        updateSql,
-                        [
-                            req.user.id,
-                            id,
-                        ],
-                        (updateErr) => {
+                            console.log(updateErr);
 
-                            if (updateErr) {
-
-                                console.log(updateErr);
-
-                                return res.status(500).json({
-                                    error:
-                                        "Failed to approve request",
-                                });
-                            }
-
-                            res.json({
-                                message:
-                                    "Request approved",
+                            return res.status(500).json({
+                                error:
+                                    "Failed to approve request",
                             });
                         }
-                    );
-                }
-            );
-        });
+
+                        // UPDATE VEHICLE
+                        const updateVehicleSql = `
+                            UPDATE vehicles
+                            SET status = 'approved'
+                            WHERE plate_number = ?
+                        `;
+
+                        db.query(
+                            updateVehicleSql,
+                            [
+                                request.plate_number
+                            ],
+                            (
+                                vehicleErr
+                            ) => {
+
+                                if (vehicleErr) {
+
+                                    console.log(vehicleErr);
+
+                                    return res.status(500).json({
+                                        error:
+                                            "Failed to update vehicle",
+                                    });
+                                }
+
+                                // UPDATE ENTRY LOG
+                                const updateLogSql = `
+                                    UPDATE entry_logs
+                                    SET result = 'Approved'
+                                    WHERE vehicle_id IN
+                                    (
+                                        SELECT id
+                                        FROM vehicles
+                                        WHERE plate_number = ?
+                                    )
+                                `;
+
+                                db.query(
+                                    updateLogSql,
+                                    [
+                                        request.plate_number
+                                    ],
+                                    (
+                                        logErr
+                                    ) => {
+
+                                        if (logErr) {
+
+                                            console.log(logErr);
+
+                                            return res.status(500).json({
+                                                error:
+                                                    "Failed to update log",
+                                            });
+                                        }
+
+                                        res.json({
+                                            message:
+                                                "Vehicle approved successfully",
+                                        });
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
     }
 );
 
@@ -213,36 +339,135 @@ router.put(
 
         const { id } = req.params;
 
-        const sql = `
-            UPDATE entry_requests
-            SET
-                status = 'rejected',
-                handled_by = ?
+        // GET REQUEST
+        const getSql = `
+            SELECT *
+            FROM entry_requests
             WHERE id = ?
         `;
 
         db.query(
-            sql,
-            [
-                req.user.id,
-                id,
-            ],
-            (err) => {
+            getSql,
+            [id],
+            (getErr, requestResult) => {
 
-                if (err) {
+                if (getErr) {
 
-                    console.log(err);
+                    console.log(getErr);
 
                     return res.status(500).json({
                         error:
-                            "Failed to reject request",
+                            "Failed to get request",
                     });
                 }
 
-                res.json({
-                    message:
-                        "Request rejected",
-                });
+                if (
+                    requestResult.length === 0
+                ) {
+
+                    return res.status(404).json({
+                        error:
+                            "Request not found",
+                    });
+                }
+
+                const request =
+                    requestResult[0];
+
+                // UPDATE REQUEST
+                const updateRequestSql = `
+                    UPDATE entry_requests
+                    SET
+                        status = 'rejected',
+                        handled_by = ?
+                    WHERE id = ?
+                `;
+
+                db.query(
+                    updateRequestSql,
+                    [
+                        req.user.id,
+                        id,
+                    ],
+                    (updateErr) => {
+
+                        if (updateErr) {
+
+                            console.log(updateErr);
+
+                            return res.status(500).json({
+                                error:
+                                    "Failed to reject request",
+                            });
+                        }
+
+                        // UPDATE VEHICLE
+                        const updateVehicleSql = `
+                            UPDATE vehicles
+                            SET status = 'rejected'
+                            WHERE plate_number = ?
+                        `;
+
+                        db.query(
+                            updateVehicleSql,
+                            [
+                                request.plate_number
+                            ],
+                            (
+                                vehicleErr
+                            ) => {
+
+                                if (vehicleErr) {
+
+                                    console.log(vehicleErr);
+
+                                    return res.status(500).json({
+                                        error:
+                                            "Failed to update vehicle",
+                                    });
+                                }
+
+                                // UPDATE LOG
+                                const updateLogSql = `
+                                    UPDATE entry_logs
+                                    SET result = 'Rejected'
+                                    WHERE vehicle_id IN
+                                    (
+                                        SELECT id
+                                        FROM vehicles
+                                        WHERE plate_number = ?
+                                    )
+                                `;
+
+                                db.query(
+                                    updateLogSql,
+                                    [
+                                        request.plate_number
+                                    ],
+                                    (
+                                        logErr
+                                    ) => {
+
+                                        if (logErr) {
+
+                                            console.log(logErr);
+
+                                            return res.status(500).json({
+                                                error:
+                                                    "Failed to update log",
+                                            });
+                                        }
+
+                                        res.json({
+                                            message:
+                                                "Vehicle rejected successfully",
+                                        });
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
             }
         );
     }

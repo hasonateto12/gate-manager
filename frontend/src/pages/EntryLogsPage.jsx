@@ -339,9 +339,6 @@ function EntryLogsPage() {
                                 תוצאה
                             </TableCell>
 
-                            <TableCell>
-                                פעולות
-                            </TableCell>
 
                         </TableRow>
 
@@ -414,26 +411,6 @@ function EntryLogsPage() {
                                 </TableCell>
 
 
-                                <TableCell>
-
-                                    {
-
-                                        !log.exit_time && (
-
-                                            <Button
-                                                variant="contained"
-                                                color="warning"
-                                                size="small"
-                                                onClick={() =>
-                                                    handleVehicleExit(log.id)
-                                                }
-                                            >
-                                                יציאה
-                                            </Button>
-                                        )
-                                    }
-
-                                </TableCell>
 
                             </TableRow>
                         ))}
