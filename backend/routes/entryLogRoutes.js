@@ -4,12 +4,14 @@ const router = express.Router();
 
 const db = require("../config/db");
 
-const verifyToken = require("../middleware/authMiddleware");
+const verifyToken =
+    require("../middleware/authMiddleware");
 
-const verifyAdmin = require("../middleware/roleMiddleware");
+const verifyAdmin =
+    require("../middleware/roleMiddleware");
 
 /* =========================
-   GET ENTRY LOGS
+   GET ENTRY LOGS (ADMIN)
 ========================= */
 router.get(
     "/",
@@ -20,12 +22,16 @@ router.get(
         const sql = `
             SELECT
                 entry_logs.*,
+
                 vehicles.plate_number,
                 vehicles.driver_name,
                 vehicles.company_name
+
             FROM entry_logs
-            LEFT JOIN vehicles
-                ON entry_logs.vehicle_id = vehicles.id
+
+                     LEFT JOIN vehicles
+                               ON entry_logs.vehicle_id = vehicles.id
+
             ORDER BY entry_logs.id DESC
         `;
 
@@ -41,6 +47,55 @@ router.get(
                 return res.status(500).json({
                     error:
                         "Failed to fetch logs",
+                });
+            }
+
+            res.json(result);
+        });
+    }
+);
+
+/* =========================
+   GET INSIDE VEHICLES
+========================= */
+router.get(
+    "/inside",
+    verifyToken,
+    (req, res) => {
+
+        const sql = `
+            SELECT
+                entry_logs.id,
+                entry_logs.entry_time,
+                entry_logs.notes,
+                entry_logs.current_status,
+
+                vehicles.plate_number,
+                vehicles.driver_name,
+                vehicles.company_name
+
+            FROM entry_logs
+
+                     LEFT JOIN vehicles
+                               ON entry_logs.vehicle_id = vehicles.id
+
+            WHERE entry_logs.current_status = 'inside'
+
+            ORDER BY entry_logs.entry_time DESC
+        `;
+
+        db.query(sql, (err, result) => {
+
+            if (err) {
+
+                console.log(
+                    "GET INSIDE VEHICLES ERROR:",
+                    err
+                );
+
+                return res.status(500).json({
+                    error:
+                        "Failed to fetch inside vehicles",
                 });
             }
 
@@ -110,6 +165,9 @@ router.post(
                 res.status(201).json({
                     message:
                         "Vehicle entered successfully",
+
+                    log_id:
+                    result.insertId,
                 });
             }
         );
@@ -128,9 +186,12 @@ router.put(
 
         const sql = `
             UPDATE entry_logs
+
             SET
                 current_status = 'outside',
-                exit_time = NOW()
+                exit_time = NOW(),
+                action_type = 'Exit'
+
             WHERE id = ?
         `;
 

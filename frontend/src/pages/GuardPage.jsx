@@ -1,30 +1,77 @@
 import {
+    useEffect,
     useState,
 } from "react";
 
 import {
+    Alert,
     Box,
     Button,
+    Chip,
     Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     TextField,
     Typography,
-    Alert,
-    Chip,
 } from "@mui/material";
 
 import {
     checkVehicle,
 } from "../api/vehicleCheckApi";
 
-function GuardPage() {
+import api from "../api/axios";
 
-    const [plateNumber, setPlateNumber] = useState("");
+export default function GuardPage() {
 
-    const [vehicleData, setVehicleData] = useState(null);
+    const [plateNumber, setPlateNumber] =
+        useState("");
 
-    const [message, setMessage] = useState("");
+    const [vehicleData, setVehicleData] =
+        useState(null);
 
-    const [messageType, setMessageType] = useState("info");
+    const [message, setMessage] =
+        useState("");
+
+    const [messageType, setMessageType] =
+        useState("info");
+
+    const [notes, setNotes] =
+        useState("");
+
+    const [insideVehicles, setInsideVehicles] =
+        useState([]);
+
+    /* =========================
+       LOAD INSIDE VEHICLES
+    ========================= */
+    const loadInsideVehicles = async () => {
+
+        try {
+
+            const response =
+                await api.get(
+                    "/entry-logs/inside"
+                );
+
+            setInsideVehicles(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.log(error);
+        }
+    };
+
+    useEffect(() => {
+
+        loadInsideVehicles();
+
+    }, []);
 
     /* =========================
        CHECK VEHICLE
@@ -35,67 +82,156 @@ function GuardPage() {
 
             setMessage("");
 
-            const data = await checkVehicle(
-                plateNumber
-            );
+            setVehicleData(null);
 
-            // NOT EXISTS
+            const data =
+                await checkVehicle(
+                    plateNumber
+                );
+
             if (!data.exists) {
-
-                setVehicleData(null);
 
                 setMessage(
                     "הרכב לא קיים במערכת"
                 );
 
-                setMessageType("warning");
+                setMessageType(
+                    "warning"
+                );
 
                 return;
             }
 
-            setVehicleData(data.vehicle);
+            setVehicleData(
+                data.vehicle
+            );
 
-            // APPROVED
             if (
-                data.vehicle.status === "approved"
+                data.vehicle.status ===
+                "approved"
             ) {
 
                 setMessage(
                     "הרכב מאושר לכניסה"
                 );
 
-                setMessageType("success");
+                setMessageType(
+                    "success"
+                );
             }
 
-            // REJECTED
             else {
 
                 setMessage(
                     "הרכב חסום"
                 );
 
-                setMessageType("error");
+                setMessageType(
+                    "error"
+                );
             }
 
         } catch (error) {
 
-            console.error(error);
+            console.log(error);
 
             setMessage(
                 "שגיאה בבדיקת רכב"
             );
 
-            setMessageType("error");
+            setMessageType(
+                "error"
+            );
         }
     };
 
+    /* =========================
+       CREATE ENTRY
+    ========================= */
+    const handleVehicleEntry =
+        async () => {
+
+            try {
+
+                await api.post(
+                    "/entry-logs",
+                    {
+                        vehicle_id:
+                        vehicleData.id,
+
+                        notes,
+                    }
+                );
+
+                setMessage(
+                    "הרכב נכנס למפעל"
+                );
+
+                setMessageType(
+                    "success"
+                );
+
+                setNotes("");
+
+                setPlateNumber("");
+
+                setVehicleData(null);
+
+                loadInsideVehicles();
+
+            } catch (error) {
+
+                console.log(error);
+
+                setMessage(
+                    "שגיאה ביצירת כניסה"
+                );
+
+                setMessageType(
+                    "error"
+                );
+            }
+        };
+
+    /* =========================
+       VEHICLE EXIT
+    ========================= */
+    const handleVehicleExit =
+        async (logId) => {
+
+            try {
+
+                await api.put(
+                    `/entry-logs/${logId}/exit`
+                );
+
+                setMessage(
+                    "הרכב יצא מהמפעל"
+                );
+
+                setMessageType(
+                    "success"
+                );
+
+                loadInsideVehicles();
+
+            } catch (error) {
+
+                console.log(error);
+
+                setMessage(
+                    "שגיאה ביציאת רכב"
+                );
+
+                setMessageType(
+                    "error"
+                );
+            }
+        };
+
     return (
 
-        <Box
-            sx={{
-                p: 4,
-            }}
-        >
+        <Box sx={{ p: 4 }}>
 
             <Typography
                 variant="h4"
@@ -109,6 +245,7 @@ function GuardPage() {
                 sx={{
                     p: 4,
                     borderRadius: 3,
+                    mb: 4,
                 }}
             >
 
@@ -140,7 +277,9 @@ function GuardPage() {
 
                     <Button
                         variant="contained"
-                        onClick={handleCheckVehicle}
+                        onClick={
+                            handleCheckVehicle
+                        }
                     >
                         בדוק
                     </Button>
@@ -152,7 +291,9 @@ function GuardPage() {
                     message && (
 
                         <Alert
-                            severity={messageType}
+                            severity={
+                                messageType
+                            }
                             sx={{ mb: 3 }}
                         >
                             {message}
@@ -179,7 +320,9 @@ function GuardPage() {
 
                                 {" "}
 
-                                {vehicleData.plate_number}
+                                {
+                                    vehicleData.plate_number
+                                }
                             </Typography>
 
                             <Typography>
@@ -189,7 +332,9 @@ function GuardPage() {
 
                                 {" "}
 
-                                {vehicleData.driver_name}
+                                {
+                                    vehicleData.driver_name
+                                }
                             </Typography>
 
                             <Typography>
@@ -199,7 +344,9 @@ function GuardPage() {
 
                                 {" "}
 
-                                {vehicleData.company_name}
+                                {
+                                    vehicleData.company_name
+                                }
                             </Typography>
 
                             <Typography
@@ -211,20 +358,35 @@ function GuardPage() {
                             </Typography>
 
                             <Chip
-                                label={
-                                    vehicleData.status
-                                    === "approved"
-                                        ? "מאושר"
-                                        : "חסום"
-                                }
-                                color={
-                                    vehicleData.status
-                                    === "approved"
-                                        ? "success"
-                                        : "error"
-                                }
+                                label="מאושר"
+                                color="success"
                                 sx={{ mt: 1 }}
                             />
+
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                label="מטרת כניסה"
+                                value={notes}
+                                onChange={(e) =>
+                                    setNotes(
+                                        e.target.value
+                                    )
+                                }
+                                sx={{ mt: 3 }}
+                            />
+
+                            <Button
+                                variant="contained"
+                                color="success"
+                                sx={{ mt: 3 }}
+                                onClick={
+                                    handleVehicleEntry
+                                }
+                            >
+                                כניסה למפעל
+                            </Button>
 
                         </Paper>
                     )
@@ -232,8 +394,134 @@ function GuardPage() {
 
             </Paper>
 
+            {/* =========================
+               INSIDE VEHICLES
+            ========================= */}
+
+            <Paper
+                sx={{
+                    p: 3,
+                    borderRadius: 3,
+                }}
+            >
+
+                <Typography
+                    variant="h5"
+                    mb={3}
+                    fontWeight="bold"
+                >
+                    רכבים בתוך המפעל
+                </Typography>
+
+                <TableContainer>
+
+                    <Table>
+
+                        <TableHead>
+
+                            <TableRow>
+
+                                <TableCell>
+                                    מספר רכב
+                                </TableCell>
+
+                                <TableCell>
+                                    נהג
+                                </TableCell>
+
+                                <TableCell>
+                                    חברה
+                                </TableCell>
+
+                                <TableCell>
+                                    שעת כניסה
+                                </TableCell>
+
+                                <TableCell>
+                                    הערות
+                                </TableCell>
+
+                                <TableCell>
+                                    פעולות
+                                </TableCell>
+
+                            </TableRow>
+
+                        </TableHead>
+
+                        <TableBody>
+
+                            {
+
+                                insideVehicles.map(
+                                    (vehicle) => (
+
+                                        <TableRow
+                                            key={
+                                                vehicle.id
+                                            }
+                                        >
+
+                                            <TableCell>
+                                                {
+                                                    vehicle.plate_number
+                                                }
+                                            </TableCell>
+
+                                            <TableCell>
+                                                {
+                                                    vehicle.driver_name
+                                                }
+                                            </TableCell>
+
+                                            <TableCell>
+                                                {
+                                                    vehicle.company_name
+                                                }
+                                            </TableCell>
+
+                                            <TableCell>
+                                                {
+                                                    new Date(
+                                                        vehicle.entry_time
+                                                    ).toLocaleString()
+                                                }
+                                            </TableCell>
+
+                                            <TableCell>
+                                                {
+                                                    vehicle.notes
+                                                }
+                                            </TableCell>
+
+                                            <TableCell>
+
+                                                <Button
+                                                    variant="contained"
+                                                    color="warning"
+                                                    onClick={() =>
+                                                        handleVehicleExit(
+                                                            vehicle.id
+                                                        )
+                                                    }
+                                                >
+                                                    יציאה
+                                                </Button>
+
+                                            </TableCell>
+
+                                        </TableRow>
+                                    ))
+                            }
+
+                        </TableBody>
+
+                    </Table>
+
+                </TableContainer>
+
+            </Paper>
+
         </Box>
     );
 }
-
-export default GuardPage;
