@@ -165,17 +165,36 @@ function EntryLogsPage() {
 
     const getResultChip = (result) => {
 
-        if (result === "approved") {
+        if (
+            result === "Approved" ||
+            result === "approved"
+        ) {
 
             return (
                 <Chip
-                    label="אושר"
+                    label="מאושר"
                     color="success"
                 />
             );
         }
 
-        if (result === "rejected") {
+        if (
+            result === "Pending" ||
+            result === "pending"
+        ) {
+
+            return (
+                <Chip
+                    label="ממתין"
+                    color="warning"
+                />
+            );
+        }
+
+        if (
+            result === "Rejected" ||
+            result === "rejected"
+        ) {
 
             return (
                 <Chip
@@ -186,9 +205,7 @@ function EntryLogsPage() {
         }
 
         return (
-            <Chip
-                label={result}
-            />
+            <Chip label={result} />
         );
     };
 
@@ -200,14 +217,12 @@ function EntryLogsPage() {
         const plate =
             log.plate_number?.toLowerCase() || "";
 
-        const employee =
-            log.full_name?.toLowerCase() || "";
+        const driver =
+            log.driver_name?.toLowerCase() || "";
 
         return (
-
             plate.includes(search.toLowerCase()) ||
-
-            employee.includes(search.toLowerCase())
+            driver.includes(search.toLowerCase())
         );
     });
 
@@ -267,7 +282,7 @@ function EntryLogsPage() {
 
             <TextField
                 fullWidth
-                label="חיפוש לפי עובד או רכב"
+                label="חיפוש לפי נהג או רכב"
                 variant="outlined"
                 sx={{ mb: 3 }}
                 value={search}
@@ -320,7 +335,11 @@ function EntryLogsPage() {
                             </TableCell>
 
                             <TableCell>
-                                עובד
+                                נהג
+                            </TableCell>
+
+                            <TableCell>
+                                חברה
                             </TableCell>
 
                             <TableCell>
@@ -362,7 +381,11 @@ function EntryLogsPage() {
                                 </TableCell>
 
                                 <TableCell>
-                                    {log.full_name}
+                                    {log.driver_name || "-"}
+                                </TableCell>
+
+                                <TableCell>
+                                    {log.company_name || "-"}
                                 </TableCell>
 
                                 <TableCell>

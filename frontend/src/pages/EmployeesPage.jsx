@@ -1,14 +1,11 @@
 import {
-
     useEffect,
     useState,
-
 } from "react";
 
 import api from "../api/axios";
 
 import {
-
     Typography,
     Paper,
     Table,
@@ -30,121 +27,75 @@ import {
     Button,
     Snackbar,
     Stack,
-
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 
-
 function EmployeesPage() {
-
     const [employees, setEmployees] = useState([]);
-
     const [loading, setLoading] = useState(true);
-
     const [error, setError] = useState("");
-
     const [search, setSearch] = useState("");
 
     const [openDialog, setOpenDialog] = useState(false);
-
-    const [selectedEmployee, setSelectedEmployee] =
-        useState(null);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
 
     const [snackbar, setSnackbar] = useState({
-
         open: false,
         message: "",
     });
 
-
-    // ADD STATES
-
-    const [openAddDialog, setOpenAddDialog] =
-        useState(false);
+    const [openAddDialog, setOpenAddDialog] = useState(false);
 
     const [addForm, setAddForm] = useState({
-
         full_name: "",
         phone: "",
         department: "",
-        employee_number: "",
     });
 
-
-    // EDIT STATES
-
-    const [openEditDialog, setOpenEditDialog] =
-        useState(false);
+    const [openEditDialog, setOpenEditDialog] = useState(false);
 
     const [editForm, setEditForm] = useState({
-
         full_name: "",
         phone: "",
         department: "",
-        employee_number: "",
     });
 
-
     useEffect(() => {
-
         fetchEmployees();
-
     }, []);
 
-
     const fetchEmployees = async () => {
-
         try {
-
             setLoading(true);
 
-            const response =
-                await api.get("/employees");
+            const response = await api.get("/employees");
 
             setEmployees(response.data);
-
         } catch (error) {
-
             console.error(error);
-
             setError("שגיאה בטעינת עובדים");
-
         } finally {
-
             setLoading(false);
         }
     };
 
-
-    // ADD
-
     const handleAddChange = (e) => {
-
         setAddForm({
-
             ...addForm,
-
             [e.target.name]: e.target.value,
         });
     };
 
-
     const handleAddEmployee = async () => {
-
         try {
-
-            await api.post(
-                "/employees",
-                addForm
-            );
+            await api.post("/employees", addForm);
 
             await fetchEmployees();
 
             setSnackbar({
-
                 open: true,
                 message: "העובד נוסף בהצלחה",
             });
@@ -152,66 +103,46 @@ function EmployeesPage() {
             setOpenAddDialog(false);
 
             setAddForm({
-
                 full_name: "",
                 phone: "",
                 department: "",
-                employee_number: "",
             });
-
         } catch (error) {
-
             console.error(error);
 
             setSnackbar({
-
                 open: true,
                 message: "שגיאה בהוספת עובד",
             });
         }
     };
 
-
-    // DELETE
-
     const handleDeleteClick = (employee) => {
-
         setSelectedEmployee(employee);
-
         setOpenDialog(true);
     };
 
-
     const handleDeleteEmployee = async () => {
-
         try {
-
             await api.delete(
                 `/employees/${selectedEmployee.id}`
             );
 
             setEmployees((prev) =>
-
                 prev.filter(
-
                     (employee) =>
-
                         employee.id !== selectedEmployee.id
                 )
             );
 
             setSnackbar({
-
                 open: true,
                 message: "העובד נמחק בהצלחה",
             });
-
         } catch (error) {
-
             console.error(error);
 
             setSnackbar({
-
                 open: true,
                 message: "שגיאה במחיקת עובד",
             });
@@ -220,96 +151,69 @@ function EmployeesPage() {
         setOpenDialog(false);
     };
 
-
-    // EDIT
-
     const handleEditClick = (employee) => {
-
         setSelectedEmployee(employee);
 
         setEditForm({
-
             full_name: employee.full_name || "",
             phone: employee.phone || "",
             department: employee.department || "",
-            employee_number:
-                employee.employee_number || "",
         });
 
         setOpenEditDialog(true);
     };
 
-
     const handleEditChange = (e) => {
-
         setEditForm({
-
             ...editForm,
-
             [e.target.name]: e.target.value,
         });
     };
 
-
     const handleUpdateEmployee = async () => {
-
         try {
-
             await api.put(
-
                 `/employees/${selectedEmployee.id}`,
-
                 editForm
             );
 
             await fetchEmployees();
 
             setSnackbar({
-
                 open: true,
                 message: "העובד עודכן בהצלחה",
             });
 
             setOpenEditDialog(false);
-
         } catch (error) {
-
             console.error(error);
 
             setSnackbar({
-
                 open: true,
                 message: "שגיאה בעדכון עובד",
             });
         }
     };
 
-
-    // SEARCH
-
     const filteredEmployees = employees.filter((employee) => {
-
         const fullName =
             employee.full_name?.toLowerCase() || "";
 
         const phone =
             employee.phone?.toLowerCase() || "";
 
+        const department =
+            employee.department?.toLowerCase() || "";
+
         return (
-
             fullName.includes(search.toLowerCase()) ||
-
-            phone.includes(search.toLowerCase())
+            phone.includes(search.toLowerCase()) ||
+            department.includes(search.toLowerCase())
         );
     });
 
-
-    // LOADING
-
     if (loading) {
-
         return (
-
             <Box
                 sx={{
                     display: "flex",
@@ -317,53 +221,35 @@ function EmployeesPage() {
                     mt: 5,
                 }}
             >
-
                 <CircularProgress />
-
             </Box>
         );
     }
 
-
-    // ERROR
-
     if (error) {
-
         return (
-
             <Alert severity="error">
-
                 {error}
-
             </Alert>
         );
     }
 
-
     return (
-
         <Box>
-
             <Box
                 sx={{
-
                     display: "flex",
-
                     justifyContent: "space-between",
-
                     alignItems: "center",
-
                     mb: 4,
                 }}
             >
-
                 <Typography
                     variant="h4"
                     fontWeight="bold"
                 >
                     עובדים
                 </Typography>
-
 
                 <Button
                     variant="contained"
@@ -379,7 +265,6 @@ function EmployeesPage() {
                 >
                     הוסף עובד
                 </Button>
-
             </Box>
 
             <TextField
@@ -388,18 +273,15 @@ function EmployeesPage() {
                 variant="outlined"
                 sx={{ mb: 3 }}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) =>
+                    setSearch(e.target.value)
+                }
             />
 
-
             <TableContainer component={Paper}>
-
                 <Table>
-
                     <TableHead>
-
                         <TableRow>
-
                             <TableCell>
                                 מזהה
                             </TableCell>
@@ -417,26 +299,14 @@ function EmployeesPage() {
                             </TableCell>
 
                             <TableCell>
-                                מספר עובד
-                            </TableCell>
-
-                            <TableCell>
                                 פעולות
                             </TableCell>
-
                         </TableRow>
-
                     </TableHead>
 
-
                     <TableBody>
-
                         {filteredEmployees.map((employee) => (
-
-                            <TableRow
-                                key={employee.id}
-                            >
-
+                            <TableRow key={employee.id}>
                                 <TableCell>
                                     {employee.id}
                                 </TableCell>
@@ -454,54 +324,38 @@ function EmployeesPage() {
                                 </TableCell>
 
                                 <TableCell>
-                                    {employee.employee_number}
-                                </TableCell>
-
-                                <TableCell>
-
                                     <Stack
                                         direction="row"
                                         spacing={1}
                                     >
-
                                         <IconButton
                                             color="primary"
                                             onClick={() =>
-                                                handleEditClick(employee)
+                                                handleEditClick(
+                                                    employee
+                                                )
                                             }
                                         >
-
                                             <EditIcon />
-
                                         </IconButton>
-
 
                                         <IconButton
                                             color="error"
                                             onClick={() =>
-                                                handleDeleteClick(employee)
+                                                handleDeleteClick(
+                                                    employee
+                                                )
                                             }
                                         >
-
                                             <DeleteIcon />
-
                                         </IconButton>
-
                                     </Stack>
-
                                 </TableCell>
-
                             </TableRow>
                         ))}
-
                     </TableBody>
-
                 </Table>
-
             </TableContainer>
-
-
-            {/* ADD DIALOG */}
 
             <Dialog
                 open={openAddDialog}
@@ -510,16 +364,11 @@ function EmployeesPage() {
                 }
                 fullWidth
             >
-
                 <DialogTitle>
-
                     הוספת עובד
-
                 </DialogTitle>
 
-
                 <DialogContent>
-
                     <TextField
                         fullWidth
                         margin="normal"
@@ -546,21 +395,9 @@ function EmployeesPage() {
                         value={addForm.department}
                         onChange={handleAddChange}
                     />
-
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="מספר עובד"
-                        name="employee_number"
-                        value={addForm.employee_number}
-                        onChange={handleAddChange}
-                    />
-
                 </DialogContent>
 
-
                 <DialogActions>
-
                     <Button
                         onClick={() =>
                             setOpenAddDialog(false)
@@ -569,49 +406,33 @@ function EmployeesPage() {
                         ביטול
                     </Button>
 
-
                     <Button
                         variant="contained"
                         onClick={handleAddEmployee}
                     >
                         הוסף
                     </Button>
-
                 </DialogActions>
-
             </Dialog>
-
-
-            {/* DELETE DIALOG */}
 
             <Dialog
                 open={openDialog}
-                onClose={() => setOpenDialog(false)}
+                onClose={() =>
+                    setOpenDialog(false)
+                }
             >
-
                 <DialogTitle>
-
                     מחיקת עובד
-
                 </DialogTitle>
 
-
                 <DialogContent>
-
                     <DialogContentText>
-
-                        האם למחוק את העובד
-                        {" "}
-                        {selectedEmployee?.full_name}
-                        ?
-
+                        האם למחוק את העובד{" "}
+                        {selectedEmployee?.full_name}?
                     </DialogContentText>
-
                 </DialogContent>
 
-
                 <DialogActions>
-
                     <Button
                         onClick={() =>
                             setOpenDialog(false)
@@ -620,20 +441,14 @@ function EmployeesPage() {
                         ביטול
                     </Button>
 
-
                     <Button
                         color="error"
                         onClick={handleDeleteEmployee}
                     >
                         מחק
                     </Button>
-
                 </DialogActions>
-
             </Dialog>
-
-
-            {/* EDIT DIALOG */}
 
             <Dialog
                 open={openEditDialog}
@@ -642,16 +457,11 @@ function EmployeesPage() {
                 }
                 fullWidth
             >
-
                 <DialogTitle>
-
                     עריכת עובד
-
                 </DialogTitle>
 
-
                 <DialogContent>
-
                     <TextField
                         fullWidth
                         margin="normal"
@@ -678,21 +488,9 @@ function EmployeesPage() {
                         value={editForm.department}
                         onChange={handleEditChange}
                     />
-
-                    <TextField
-                        fullWidth
-                        margin="normal"
-                        label="מספר עובד"
-                        name="employee_number"
-                        value={editForm.employee_number}
-                        onChange={handleEditChange}
-                    />
-
                 </DialogContent>
 
-
                 <DialogActions>
-
                     <Button
                         onClick={() =>
                             setOpenEditDialog(false)
@@ -701,20 +499,14 @@ function EmployeesPage() {
                         ביטול
                     </Button>
 
-
                     <Button
                         variant="contained"
                         onClick={handleUpdateEmployee}
                     >
                         שמור
                     </Button>
-
                 </DialogActions>
-
             </Dialog>
-
-
-            {/* SNACKBAR */}
 
             <Snackbar
                 open={snackbar.open}
@@ -727,7 +519,6 @@ function EmployeesPage() {
                     })
                 }
             />
-
         </Box>
     );
 }
