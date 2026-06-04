@@ -34,7 +34,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 function VehiclesPage() {
     const [vehicles, setVehicles] = useState([]);
-    const [employees, setEmployees] = useState([]);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -54,22 +53,21 @@ function VehiclesPage() {
     const [addForm, setAddForm] = useState({
         plate_number: "",
         vehicle_type: "",
-        color: "",
-        employee_id: "",
-        status: "pending",
+        driver_name: "",
+        company_name: "",
+        status: "approved",
     });
 
     const [editForm, setEditForm] = useState({
         plate_number: "",
         vehicle_type: "",
-        color: "",
-        employee_id: "",
+        driver_name: "",
+        company_name: "",
         status: "",
     });
 
     useEffect(() => {
         fetchVehicles();
-        fetchEmployees();
     }, []);
 
     const fetchVehicles = async () => {
@@ -85,14 +83,7 @@ function VehiclesPage() {
         }
     };
 
-    const fetchEmployees = async () => {
-        try {
-            const response = await api.get("/employees");
-            setEmployees(response.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+
 
     const handleAddChange = (e) => {
         setAddForm({
@@ -116,9 +107,9 @@ function VehiclesPage() {
             setAddForm({
                 plate_number: "",
                 vehicle_type: "",
-                color: "",
-                employee_id: "",
-                status: "pending",
+                driver_name: "",
+                company_name: "",
+                status: "approved",
             });
         } catch (error) {
             console.error(error);
@@ -136,9 +127,9 @@ function VehiclesPage() {
         setEditForm({
             plate_number: vehicle.plate_number || "",
             vehicle_type: vehicle.vehicle_type || "",
-            color: vehicle.color || "",
-            employee_id: vehicle.employee_id || "",
-            status: vehicle.status || "pending",
+            driver_name: vehicle.driver_name || "",
+            company_name: vehicle.company_name || "",
+            status: vehicle.status || "approved",
         });
 
         setOpenEditDialog(true);
@@ -216,11 +207,11 @@ function VehiclesPage() {
 
     const filteredVehicles = vehicles.filter((vehicle) => {
         const plate = vehicle.plate_number?.toLowerCase() || "";
-        const employee = vehicle.employee_name?.toLowerCase() || "";
+        const driver = vehicle.driver_name?.toLowerCase() || "";
 
         return (
             plate.includes(search.toLowerCase()) ||
-            employee.includes(search.toLowerCase())
+            driver.includes(search.toLowerCase())
         );
     });
 
@@ -286,8 +277,8 @@ function VehiclesPage() {
                             <TableCell>מזהה</TableCell>
                             <TableCell>מספר רכב</TableCell>
                             <TableCell>סוג רכב</TableCell>
-                            <TableCell>צבע</TableCell>
-                            <TableCell>עובד</TableCell>
+                            <TableCell>נהג</TableCell>
+                            <TableCell>חברה</TableCell>
                             <TableCell>סטטוס</TableCell>
                             <TableCell>פעולות</TableCell>
                         </TableRow>
@@ -299,8 +290,8 @@ function VehiclesPage() {
                                 <TableCell>{vehicle.id}</TableCell>
                                 <TableCell>{vehicle.plate_number}</TableCell>
                                 <TableCell>{vehicle.vehicle_type}</TableCell>
-                                <TableCell>{vehicle.color}</TableCell>
-                                <TableCell>{vehicle.employee_name || "-"}</TableCell>
+                                <TableCell>{vehicle.driver_name || "-"}</TableCell>
+                                <TableCell>{vehicle.company_name || "-"}</TableCell>
                                 <TableCell>{getStatusChip(vehicle.status)}</TableCell>
 
                                 <TableCell>
@@ -355,26 +346,20 @@ function VehiclesPage() {
                     <TextField
                         fullWidth
                         margin="normal"
-                        label="צבע"
-                        name="color"
-                        value={addForm.color}
+                        label="שם נהג"
+                        name="driver_name"
+                        value={addForm.driver_name}
                         onChange={handleAddChange}
                     />
 
                     <TextField
-                        select
                         fullWidth
                         margin="normal"
-                        label="עובד"
-                        name="employee_id"
-                        value={addForm.employee_id}
+                        label="חברה"
+                        name="company_name"
+                        value={addForm.company_name}
                         onChange={handleAddChange}
                     >
-                        {employees.map((employee) => (
-                            <MenuItem key={employee.id} value={employee.id}>
-                                {employee.full_name}
-                            </MenuItem>
-                        ))}
                     </TextField>
                 </DialogContent>
 
@@ -418,26 +403,21 @@ function VehiclesPage() {
                     <TextField
                         fullWidth
                         margin="normal"
-                        label="צבע"
-                        name="color"
-                        value={editForm.color}
+                        label="שם נהג"
+                        name="driver_name"
+                        value={editForm.driver_name}
                         onChange={handleEditChange}
                     />
 
                     <TextField
-                        select
                         fullWidth
                         margin="normal"
-                        label="עובד"
-                        name="employee_id"
-                        value={editForm.employee_id}
+                        label="חברה"
+                        name="company_name"
+                        value={editForm.company_name}
                         onChange={handleEditChange}
                     >
-                        {employees.map((employee) => (
-                            <MenuItem key={employee.id} value={employee.id}>
-                                {employee.full_name}
-                            </MenuItem>
-                        ))}
+
                     </TextField>
 
                     <TextField
