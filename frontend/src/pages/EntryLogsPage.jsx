@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import {
     Alert,
@@ -116,6 +118,56 @@ function EntryLogsPage() {
         window.print();
     };
 
+    const clearFilters = () => {
+        setSearch("");
+        setStatusFilter("all");
+        setFromDate("");
+        setToDate("");
+    };
+
+
+    const exportPDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text("Gate Manager - Entry Logs Report", 14, 20);
+
+        doc.setFontSize(11);
+        doc.text(
+            `Generated: ${new Date().toLocaleString()}`,
+            14,
+            30
+        );
+
+        doc.text(`Total Logs: ${stats.total}`, 14, 40);
+        doc.text(`Inside: ${stats.inside}`, 14, 48);
+        doc.text(`Outside: ${stats.outside}`, 14, 56);
+
+        autoTable(doc, {
+            startY: 70,
+            head: [[
+                "Plate",
+                "Driver",
+                "Company",
+                "Entry",
+                "Exit",
+                "Status"
+            ]],
+            body: filteredLogs.map((log) => [
+                log.plate_number || "",
+                log.driver_name || "",
+                log.company_name || "",
+                formatDateTime(log.entry_time),
+                formatDateTime(log.exit_time),
+                log.current_status || ""
+            ]),
+        });
+
+        doc.save("entry-logs-report.pdf");
+    };
+
+
+
     return (
         <Box>
             <Stack
@@ -142,6 +194,21 @@ function EntryLogsPage() {
                         רענון
                     </Button>
 
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={clearFilters}
+                    >
+                        איפוס סינון
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        color="success"
+                        onClick={exportPDF}
+                    >
+                        ייצוא PDF
+                    </Button>
                     <Button
                         variant="contained"
                         startIcon={<PrintIcon />}
@@ -296,8 +363,23 @@ function EntryLogsPage() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredLogs.map((log) => (
-                                        <TableRow key={log.id} hover>
+                                    [...filteredLogs]
+                                        .sort(
+                                            (a, b) =>
+                                                new Date(b.entry_time) -
+                                                new Date(a.entry_time)
+                                        )
+                                        .map((log) => (
+                                            <TableRow
+                                                key={log.id}
+                                                hover
+                                                sx={{
+                                                    backgroundColor:
+                                                        log.current_status === "inside"
+                                                            ? "#e8f5e9"
+                                                            : "inherit",
+                                                }}
+                                            >
                                             <TableCell>{log.plate_number || "-"}</TableCell>
                                             <TableCell>{log.vehicle_type || "-"}</TableCell>
                                             <TableCell>{log.driver_name || "-"}</TableCell>
