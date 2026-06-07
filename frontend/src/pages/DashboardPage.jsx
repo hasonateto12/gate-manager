@@ -26,13 +26,17 @@ import {
 } from "@mui/material";
 
 import {
-
     PieChart,
     Pie,
     Cell,
     Tooltip,
     ResponsiveContainer,
-
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Legend,
 } from "recharts";
 
 
@@ -170,6 +174,7 @@ function DashboardPage() {
     ];
 
 
+
     const insideVehicles =
         logs.filter(
             (log) => log.current_status === "inside"
@@ -199,6 +204,17 @@ function DashboardPage() {
             );
         }).length;
 
+
+    const vehicleStatusData = [
+        {
+            name: "בפנים",
+            value: insideVehicles,
+        },
+        {
+            name: "בחוץ",
+            value: outsideVehicles,
+        },
+    ];
 
     if (loading) {
 
@@ -402,6 +418,51 @@ function DashboardPage() {
                             {stats.rejected}
                         </Typography>
 
+                    </Paper>
+
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            mb: 4,
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            fontWeight="bold"
+                            mb={3}
+                        >
+                            מצב רכבים במערכת
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                width: "100%",
+                                height: 350,
+                            }}
+                        >
+                            <ResponsiveContainer>
+                                <BarChart
+                                    data={vehicleStatusData}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+
+                                    <XAxis dataKey="name" />
+
+                                    <YAxis />
+
+                                    <Tooltip />
+
+                                    <Legend />
+
+                                    <Bar
+                                        dataKey="value"
+                                        name="כמות"
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </Box>
                     </Paper>
 
                 </Grid>
