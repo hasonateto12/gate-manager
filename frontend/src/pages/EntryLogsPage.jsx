@@ -41,6 +41,7 @@ function EntryLogsPage() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
+    const [quickFilter, setQuickFilter] = useState("all");
 
     const fetchLogs = async () => {
         try {
@@ -95,11 +96,27 @@ function EntryLogsPage() {
     }, [logs, search, statusFilter, fromDate, toDate]);
 
     const stats = useMemo(() => {
+
+        const today = new Date().toDateString();
+
         return {
             total: filteredLogs.length,
-            inside: filteredLogs.filter((l) => l.current_status === "inside").length,
-            outside: filteredLogs.filter((l) => l.current_status === "outside").length,
+
+            inside: filteredLogs.filter(
+                (l) => l.current_status === "inside"
+            ).length,
+
+            outside: filteredLogs.filter(
+                (l) => l.current_status === "outside"
+            ).length,
+
+            todayEntries: filteredLogs.filter(
+                (l) =>
+                    l.entry_time &&
+                    new Date(l.entry_time).toDateString() === today
+            ).length,
         };
+
     }, [filteredLogs]);
 
     const getStatusChip = (status) => {
@@ -124,6 +141,42 @@ function EntryLogsPage() {
         setFromDate("");
         setToDate("");
     };
+
+    const applyQuickFilter = (type) => {
+        const today = new Date();
+
+        setQuickFilter(type);
+
+        if (type === "all") {
+            setFromDate("");
+            setToDate("");
+            return;
+        }
+
+        if (type === "today") {
+            const date = today.toISOString().split("T")[0];
+
+            setFromDate(date);
+            setToDate(date);
+        }
+
+        if (type === "week") {
+            const start = new Date(today);
+            start.setDate(today.getDate() - 7);
+
+            setFromDate(start.toISOString().split("T")[0]);
+            setToDate(today.toISOString().split("T")[0]);
+        }
+
+        if (type === "month") {
+            const start = new Date(today);
+            start.setMonth(today.getMonth() - 1);
+
+            setFromDate(start.toISOString().split("T")[0]);
+            setToDate(today.toISOString().split("T")[0]);
+        }
+    };
+
 
 
     const exportPDF = () => {
@@ -275,10 +328,58 @@ function EntryLogsPage() {
                 </Grid>
             </Grid>
 
+
+            <Grid item xs={12} md={3}>
+                <Card>
+                    <CardContent>
+                        <Typography color="text.secondary">
+                            כניסות היום
+                        </Typography>
+
+                        <Typography
+                            variant="h5"
+                            fontWeight="bold"
+                        >
+                            {stats.todayEntries}
+                        </Typography>
+                    </CardContent>
+                </Card>
+            </Grid>
+
             <Paper sx={{ p: 2, mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold" mb={2}>
                     סינון וחיפוש
                 </Typography>
+
+                <Stack direction="row" spacing={1} mb={2}>
+                    <Button
+                        variant={quickFilter === "today" ? "contained" : "outlined"}
+                        onClick={() => applyQuickFilter("today")}
+                    >
+                        היום
+                    </Button>
+
+                    <Button
+                        variant={quickFilter === "week" ? "contained" : "outlined"}
+                        onClick={() => applyQuickFilter("week")}
+                    >
+                        השבוע
+                    </Button>
+
+                    <Button
+                        variant={quickFilter === "month" ? "contained" : "outlined"}
+                        onClick={() => applyQuickFilter("month")}
+                    >
+                        החודש
+                    </Button>
+
+                    <Button
+                        variant={quickFilter === "all" ? "contained" : "outlined"}
+                        onClick={() => applyQuickFilter("all")}
+                    >
+                        הכל
+                    </Button>
+                </Stack>
 
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
