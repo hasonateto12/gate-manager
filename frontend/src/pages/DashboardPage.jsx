@@ -43,6 +43,9 @@ function DashboardPage() {
     const [recentRequests, setRecentRequests] =
         useState([]);
 
+    const [vehicles, setVehicles] = useState([]);
+    const [logs, setLogs] = useState([]);
+
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState("");
@@ -67,6 +70,16 @@ function DashboardPage() {
             const statsResponse =
                 await api.get("/dashboard/stats");
 
+
+            const vehiclesResponse =
+                await api.get("/vehicles");
+
+            setVehicles(vehiclesResponse.data || []);
+
+            const logsResponse =
+                await api.get("/entry-logs");
+
+            setLogs(logsResponse.data || []);
             setStats(statsResponse.data);
 
 
@@ -155,6 +168,36 @@ function DashboardPage() {
             color: "#f44336",
         },
     ];
+
+
+    const insideVehicles =
+        logs.filter(
+            (log) => log.current_status === "inside"
+        ).length;
+
+    const outsideVehicles =
+        logs.filter(
+            (log) => log.current_status === "outside"
+        ).length;
+
+    const approvedVehicles =
+        vehicles.filter(
+            (v) => Number(v.is_approved) === 1
+        ).length;
+
+    const totalVehicles =
+        vehicles.length;
+
+    const todayEntries =
+        logs.filter((log) => {
+            if (!log.entry_time) return false;
+
+            return (
+                new Date(log.entry_time)
+                    .toDateString() ===
+                new Date().toDateString()
+            );
+        }).length;
 
 
     if (loading) {
@@ -366,6 +409,89 @@ function DashboardPage() {
             </Grid>
 
 
+            <Grid container spacing={3} mb={4}>
+
+                <Grid item xs={12} md={3}>
+                    <Paper sx={{ p: 3, textAlign: "center", borderRadius: 3 }}>
+                        <Typography variant="h6">
+                            סה״כ רכבים
+                        </Typography>
+
+                        <Typography variant="h3" fontWeight="bold">
+                            {totalVehicles}
+                        </Typography>
+                    </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            textAlign: "center",
+                            borderRadius: 3,
+                            backgroundColor: "#e8f5e9",
+                        }}
+                    >
+                        <Typography variant="h6">
+                            רכבים במפעל
+                        </Typography>
+
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                            color="success.main"
+                        >
+                            {insideVehicles}
+                        </Typography>
+                    </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            textAlign: "center",
+                            borderRadius: 3,
+                        }}
+                    >
+                        <Typography variant="h6">
+                            רכבים מאושרים
+                        </Typography>
+
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                        >
+                            {approvedVehicles}
+                        </Typography>
+                    </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={3}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            textAlign: "center",
+                            borderRadius: 3,
+                            backgroundColor: "#e3f2fd",
+                        }}
+                    >
+                        <Typography variant="h6">
+                            כניסות היום
+                        </Typography>
+
+                        <Typography
+                            variant="h3"
+                            fontWeight="bold"
+                            color="primary"
+                        >
+                            {todayEntries}
+                        </Typography>
+                    </Paper>
+                </Grid>
+
+            </Grid>
+
             {/* CHART */}
 
             <Paper
@@ -492,7 +618,7 @@ function DashboardPage() {
                                         {
 
                                             new Date(
-                                                request.request_time
+                                                request.created_at
                                             ).toLocaleString("he-IL")
                                         }
 
