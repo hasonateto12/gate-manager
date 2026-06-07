@@ -20,6 +20,7 @@ router.post(
             plate_number,
             driver_name,
             company_name,
+            vehicle_type,
             notes,
         } = req.body;
 
@@ -32,9 +33,10 @@ router.post(
                 company_name,
                 notes,
                 status,
-                request_time
+                request_time,
+                vehicle_type
             )
-            VALUES (?, ?, ?, ?, 'pending', NOW())
+            VALUES (?, ?, ?, ?, 'pending', NOW(), ?)
         `;
 
         db.query(
@@ -44,6 +46,7 @@ router.post(
                 driver_name,
                 company_name,
                 notes,
+                vehicle_type,
             ],
             (requestErr) => {
 
@@ -62,19 +65,21 @@ router.post(
                     INSERT INTO vehicles
                     (
                         plate_number,
+                        vehicle_type,
                         driver_name,
                         company_name,
                         status
                     )
-                    VALUES (?, ?, ?, 'pending')
+                    VALUES (?, ?, ?, ?, 'pending')
                 `;
 
                 db.query(
                     vehicleSql,
                     [
                         plate_number,
+                        vehicle_type,
                         driver_name,
-                        company_name,
+                        company_name
                     ],
                     (
                         vehicleErr,

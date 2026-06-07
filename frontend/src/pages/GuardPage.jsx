@@ -8,6 +8,7 @@ import {
     Box,
     Button,
     Chip,
+    MenuItem,
     Paper,
     Table,
     TableBody,
@@ -51,6 +52,9 @@ export default function GuardPage() {
         useState("");
 
     const [companyName, setCompanyName] =
+        useState("");
+
+    const [vehicleType, setVehicleType] =
         useState("");
 
     const [newVehicleMode, setNewVehicleMode] =
@@ -254,16 +258,10 @@ export default function GuardPage() {
             try {
 
                 await createEntryRequest({
-
-                    plate_number:
-                    plateNumber,
-
-                    driver_name:
-                    driverName,
-
-                    company_name:
-                    companyName,
-
+                    plate_number: plateNumber,
+                    driver_name: driverName,
+                    company_name: companyName,
+                    vehicle_type: vehicleType,
                     notes,
                 });
 
@@ -281,9 +279,13 @@ export default function GuardPage() {
 
                 setCompanyName("");
 
+                setVehicleType("");
+
                 setNotes("");
 
                 setPlateNumber("");
+
+                loadInsideVehicles();
 
             } catch (error) {
 
@@ -298,6 +300,9 @@ export default function GuardPage() {
                 );
             }
         };
+
+
+
 
     return (
 
@@ -485,6 +490,35 @@ export default function GuardPage() {
                             >
                                 רכב חדש - בקשת אישור
                             </Typography>
+
+
+                            <TextField
+                                select
+                                fullWidth
+                                label="סוג רכב"
+                                value={vehicleType}
+                                onChange={(e) =>
+                                    setVehicleType(e.target.value)
+                                }
+                                sx={{ mb: 2 }}
+                            >
+                                <MenuItem value="רכב פרטי">
+                                    רכב פרטי
+                                </MenuItem>
+
+                                <MenuItem value="משאית">
+                                    משאית
+                                </MenuItem>
+
+                                <MenuItem value="טנדר">
+                                    טנדר
+                                </MenuItem>
+
+                                <MenuItem value="אופנוע">
+                                    אופנוע
+                                </MenuItem>
+
+                            </TextField>
 
                             <TextField
                                 fullWidth

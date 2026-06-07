@@ -24,6 +24,7 @@ router.get(
                 entry_logs.*,
 
                 vehicles.plate_number,
+                vehicles.vehicle_type,
                 vehicles.driver_name,
                 vehicles.company_name
 
@@ -31,7 +32,6 @@ router.get(
 
                      LEFT JOIN vehicles
                                ON entry_logs.vehicle_id = vehicles.id
-
             ORDER BY entry_logs.id DESC
         `;
 
@@ -71,6 +71,7 @@ router.get(
                 entry_logs.current_status,
 
                 vehicles.plate_number,
+                vehicles.vehicle_type,
                 vehicles.driver_name,
                 vehicles.company_name
 
