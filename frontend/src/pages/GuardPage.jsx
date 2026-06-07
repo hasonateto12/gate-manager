@@ -604,6 +604,10 @@ export default function GuardPage() {
                                 </TableCell>
 
                                 <TableCell>
+                                    סוג רכב
+                                </TableCell>
+
+                                <TableCell>
                                     נהג
                                 </TableCell>
 
@@ -644,6 +648,10 @@ export default function GuardPage() {
                                                 {
                                                     vehicle.plate_number
                                                 }
+                                            </TableCell>
+
+                                            <TableCell>
+                                                {vehicle.vehicle_type || "-"}
                                             </TableCell>
 
                                             <TableCell>
