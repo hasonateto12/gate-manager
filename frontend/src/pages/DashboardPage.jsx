@@ -5,13 +5,15 @@ import {
 } from "react";
 
 import api from "../api/axios";
-
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
 
     Grid,
     Paper,
     Typography,
     Box,
+    Button,
     CircularProgress,
     Alert,
     Table,
@@ -148,6 +150,54 @@ function DashboardPage() {
         );
     };
 
+    const exportDashboardPDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(20);
+        doc.text("Gate Manager - Dashboard Report", 14, 20);
+
+        doc.setFontSize(11);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+
+        doc.setFontSize(14);
+        doc.text("Summary", 14, 45);
+
+        autoTable(doc, {
+            startY: 52,
+            head: [["Metric", "Value"]],
+            body: [
+                ["Total Requests", stats?.total || 0],
+                ["Pending Requests", stats?.pending || 0],
+                ["Approved Requests", stats?.approved || 0],
+                ["Rejected Requests", stats?.rejected || 0],
+                ["Total Vehicles", totalVehicles],
+                ["Approved Vehicles", approvedVehicles],
+                ["Vehicles Inside", insideVehicles],
+                ["Vehicles Outside", outsideVehicles],
+                ["Today Entries", todayEntries],
+            ],
+        });
+
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [["Plate Number", "Driver", "Company", "Entry Time", "Exit Time", "Status"]],
+            body: logs.slice(0, 10).map((log) => [
+                log.plate_number || "-",
+                log.driver_name || "-",
+                log.company_name || "-",
+                log.entry_time
+                    ? new Date(log.entry_time).toLocaleString("he-IL")
+                    : "-",
+                log.exit_time
+                    ? new Date(log.exit_time).toLocaleString("he-IL")
+                    : "-",
+                log.current_status || "-",
+            ]),
+        });
+
+        doc.save("dashboard-report.pdf");
+    };
+
 
     // CHART DATA
 
@@ -278,13 +328,26 @@ function DashboardPage() {
 
         <Box>
 
-            <Typography
-                variant="h4"
-                fontWeight="bold"
+            <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
                 mb={4}
             >
-                לוח בקרה
-            </Typography>
+                <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                >
+                    לוח בקרה
+                </Typography>
+
+                <Button
+                    variant="contained"
+                    onClick={exportDashboardPDF}
+                >
+                    ייצוא דוח PDF
+                </Button>
+            </Box>
 
 
             {/* CARDS */}
