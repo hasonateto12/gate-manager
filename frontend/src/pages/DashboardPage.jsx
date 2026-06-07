@@ -1,8 +1,7 @@
 import {
-
     useEffect,
     useState,
-
+    useMemo,
 } from "react";
 
 import api from "../api/axios";
@@ -215,6 +214,33 @@ function DashboardPage() {
             value: outsideVehicles,
         },
     ];
+
+
+    const entriesPerDayData = useMemo(() => {
+
+        const grouped = {};
+
+        logs.forEach((log) => {
+
+            if (!log.entry_time) return;
+
+            const day = new Date(log.entry_time)
+                .toLocaleDateString("he-IL");
+
+            grouped[day] =
+                (grouped[day] || 0) + 1;
+        });
+
+        return Object.entries(grouped)
+            .map(([date, count]) => ({
+                date,
+                count,
+            }))
+            .slice(-7);
+
+    }, [logs]);
+
+
 
     if (loading) {
 
@@ -459,6 +485,55 @@ function DashboardPage() {
                                     <Bar
                                         dataKey="value"
                                         name="כמות"
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </Box>
+                    </Paper>
+
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            mb: 4,
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            fontWeight="bold"
+                            mb={3}
+                        >
+                            כניסות לפי ימים
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                width: "100%",
+                                height: 350,
+                            }}
+                        >
+                            <ResponsiveContainer>
+                                <BarChart
+                                    data={entriesPerDayData}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                    />
+
+                                    <XAxis
+                                        dataKey="date"
+                                    />
+
+                                    <YAxis />
+
+                                    <Tooltip />
+
+                                    <Legend />
+
+                                    <Bar
+                                        dataKey="count"
+                                        name="כניסות"
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
