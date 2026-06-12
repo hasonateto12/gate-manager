@@ -12,6 +12,7 @@ import VehiclesPage from "../pages/VehiclesPage";
 import EntryRequestsPage from "../pages/EntryRequestsPage";
 import EntryLogsPage from "../pages/EntryLogsPage";
 import GuardPage from "../pages/GuardPage";
+import HomePage from "../pages/HomePage";
 
 const router = createBrowserRouter([
 
@@ -35,6 +36,11 @@ const router = createBrowserRouter([
         ),
 
         children: [
+
+            {
+                path: "/home",
+                element: <HomePage />,
+            },
 
             {
                 path: "/dashboard",

@@ -40,6 +40,7 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LogoutIcon from "@mui/icons-material/Logout";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
+import HomeIcon from "@mui/icons-material/Home";
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -99,6 +100,25 @@ function MainLayout() {
             <Divider />
 
             <List>
+
+
+                <ListItem disablePadding>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/home"
+                    >
+
+                        <ListItemIcon>
+                            <HomeIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="דף הבית" />
+
+                    </ListItemButton>
+
+                </ListItem>
+
 
                 {/* DASHBOARD */}
 
@@ -215,6 +235,10 @@ function MainLayout() {
                 position="fixed"
                 sx={{
                     zIndex: 1201,
+                    background:
+                        "linear-gradient(135deg,#1565c0,#0d47a1)",
+                    boxShadow:
+                        "0 8px 25px rgba(0,0,0,0.25)"
                 }}
             >
 
@@ -336,8 +360,10 @@ function MainLayout() {
                         sx={{
 
                             "& .MuiDrawer-paper": {
-
                                 width: drawerWidth,
+                                boxSizing: "border-box",
+                                backgroundColor: "#1e293b",
+                                color: "white"
                             },
                         }}
                     >
@@ -355,10 +381,10 @@ function MainLayout() {
                             flexShrink: 0,
 
                             "& .MuiDrawer-paper": {
-
                                 width: drawerWidth,
-
                                 boxSizing: "border-box",
+                                backgroundColor: "#1e293b",
+                                color: "white"
                             },
                         }}
                     >
@@ -375,8 +401,15 @@ function MainLayout() {
             <Box
                 component="main"
                 sx={{
-                    flexGrow: 1,
-                    p: 3,
+                    borderRadius: 2,
+                    mx: 1,
+                    my: 0.5,
+
+                    "&:hover": {
+                        backgroundColor: "#1976d2",
+                        transform: "translateX(-5px)",
+                        transition: "0.3s"
+                    }
                 }}
             >
 

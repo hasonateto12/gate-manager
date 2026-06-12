@@ -65,7 +65,7 @@ function LoginPage() {
             // ROLE BASED REDIRECT
             if (response.data.user?.role === "admin") {
 
-                navigate("/dashboard");
+                navigate("/home");
 
             } else if (response.data.user?.role === "guard") {
 
