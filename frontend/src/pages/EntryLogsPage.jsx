@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import {
     Alert,
@@ -42,7 +44,10 @@ function EntryLogsPage() {
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
     const [quickFilter, setQuickFilter] = useState("all");
+    const theme = useTheme();
 
+    const isMobile =
+        useMediaQuery(theme.breakpoints.down("md"));
     const fetchLogs = async () => {
         try {
             setLoading(true);
@@ -224,9 +229,10 @@ function EntryLogsPage() {
     return (
         <Box>
             <Stack
-                direction="row"
+                direction={isMobile ? "column" : "row"}
                 justifyContent="space-between"
-                alignItems="center"
+                alignItems={isMobile ? "stretch" : "center"}
+                spacing={2}
                 mb={3}
             >
                 <Box>
@@ -238,8 +244,12 @@ function EntryLogsPage() {
                     </Typography>
                 </Box>
 
-                <Stack direction="row" spacing={1}>
-                    <Button
+                <Stack
+                    direction="row"
+                    spacing={1}
+                    flexWrap="wrap"
+                    justifyContent={isMobile ? "center" : "flex-end"}
+                >                    <Button
                         variant="outlined"
                         startIcon={<RefreshIcon />}
                         onClick={fetchLogs}
@@ -279,7 +289,7 @@ function EntryLogsPage() {
             )}
 
             <Grid container spacing={2} mb={3}>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={6} md={3}>
                     <Card>
                         <CardContent>
                             <Stack direction="row" alignItems="center" spacing={2}>
@@ -295,7 +305,7 @@ function EntryLogsPage() {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={6} md={3}>
                     <Card>
                         <CardContent>
                             <Stack direction="row" alignItems="center" spacing={2}>
@@ -311,7 +321,7 @@ function EntryLogsPage() {
                     </Card>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={6} md={3}>
                     <Card>
                         <CardContent>
                             <Stack direction="row" alignItems="center" spacing={2}>
@@ -329,7 +339,7 @@ function EntryLogsPage() {
             </Grid>
 
 
-            <Grid item xs={12} md={3}>
+            <Grid item xs={6} md={3}>
                 <Card>
                     <CardContent>
                         <Typography color="text.secondary">
@@ -351,7 +361,11 @@ function EntryLogsPage() {
                     סינון וחיפוש
                 </Typography>
 
-                <Stack direction="row" spacing={1} mb={2}>
+                <Stack
+                    direction={isMobile ? "column" : "row"}
+                    spacing={1}
+                    mb={2}
+                >
                     <Button
                         variant={quickFilter === "today" ? "contained" : "outlined"}
                         onClick={() => applyQuickFilter("today")}
@@ -441,29 +455,18 @@ function EntryLogsPage() {
                         <CircularProgress />
                     </Box>
                 ) : (
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>מספר רכב</TableCell>
-                                    <TableCell>סוג רכב</TableCell>
-                                    <TableCell>שם נהג</TableCell>
-                                    <TableCell>חברה</TableCell>
-                                    <TableCell>זמן כניסה</TableCell>
-                                    <TableCell>זמן יציאה</TableCell>
-                                    <TableCell>סטטוס</TableCell>
-                                    <TableCell>הערות</TableCell>
-                                </TableRow>
-                            </TableHead>
 
-                            <TableBody>
+                        isMobile ? (
+
+                            <Stack spacing={2}>
                                 {filteredLogs.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={8} align="center">
-                                            אין נתונים להצגה
-                                        </TableCell>
-                                    </TableRow>
+
+                                    <Alert severity="info">
+                                        אין נתונים להצגה
+                                    </Alert>
+
                                 ) : (
+
                                     [...filteredLogs]
                                         .sort(
                                             (a, b) =>
@@ -471,30 +474,134 @@ function EntryLogsPage() {
                                                 new Date(a.entry_time)
                                         )
                                         .map((log) => (
-                                            <TableRow
+
+                                            <Card
                                                 key={log.id}
-                                                hover
                                                 sx={{
+                                                    borderRadius: 3,
                                                     backgroundColor:
                                                         log.current_status === "inside"
                                                             ? "#e8f5e9"
-                                                            : "inherit",
+                                                            : "background.paper",
+                                                    boxShadow: 3,
                                                 }}
                                             >
-                                            <TableCell>{log.plate_number || "-"}</TableCell>
-                                            <TableCell>{log.vehicle_type || "-"}</TableCell>
-                                            <TableCell>{log.driver_name || "-"}</TableCell>
-                                            <TableCell>{log.company_name || "-"}</TableCell>
-                                            <TableCell>{formatDateTime(log.entry_time)}</TableCell>
-                                            <TableCell>{formatDateTime(log.exit_time)}</TableCell>
-                                            <TableCell>{getStatusChip(log.current_status)}</TableCell>
-                                            <TableCell>{log.notes || "-"}</TableCell>
-                                        </TableRow>
-                                    ))
+                                                <CardContent>
+
+                                                    <Stack
+                                                        direction="row"
+                                                        justifyContent="space-between"
+                                                        alignItems="center"
+                                                        mb={2}
+                                                    >
+                                                        <Typography
+                                                            variant="h6"
+                                                            fontWeight="bold"
+                                                        >
+                                                            🚗 {log.plate_number || "-"}
+                                                        </Typography>
+
+                                                        {getStatusChip(log.current_status)}
+                                                    </Stack>
+
+                                                    <Divider sx={{ mb: 2 }} />
+
+                                                    <Stack spacing={1}>
+                                                        <Typography>
+                                                            <strong>סוג רכב:</strong>{" "}
+                                                            {log.vehicle_type || "-"}
+                                                        </Typography>
+
+                                                        <Typography>
+                                                            <strong>שם נהג:</strong>{" "}
+                                                            {log.driver_name || "-"}
+                                                        </Typography>
+
+                                                        <Typography>
+                                                            <strong>חברה:</strong>{" "}
+                                                            {log.company_name || "-"}
+                                                        </Typography>
+
+                                                        <Typography>
+                                                            <strong>זמן כניסה:</strong>{" "}
+                                                            {formatDateTime(log.entry_time)}
+                                                        </Typography>
+
+                                                        <Typography>
+                                                            <strong>זמן יציאה:</strong>{" "}
+                                                            {formatDateTime(log.exit_time)}
+                                                        </Typography>
+
+                                                        <Typography>
+                                                            <strong>הערות:</strong>{" "}
+                                                            {log.notes || "-"}
+                                                        </Typography>
+                                                    </Stack>
+
+                                                </CardContent>
+                                            </Card>
+                                        ))
                                 )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                            </Stack>
+
+                        ) : (
+
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>מספר רכב</TableCell>
+                                            <TableCell>סוג רכב</TableCell>
+                                            <TableCell>שם נהג</TableCell>
+                                            <TableCell>חברה</TableCell>
+                                            <TableCell>זמן כניסה</TableCell>
+                                            <TableCell>זמן יציאה</TableCell>
+                                            <TableCell>סטטוס</TableCell>
+                                            <TableCell>הערות</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+
+                                    <TableBody>
+                                        {filteredLogs.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={8} align="center">
+                                                    אין נתונים להצגה
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            [...filteredLogs]
+                                                .sort(
+                                                    (a, b) =>
+                                                        new Date(b.entry_time) -
+                                                        new Date(a.entry_time)
+                                                )
+                                                .map((log) => (
+                                                    <TableRow
+                                                        key={log.id}
+                                                        hover
+                                                        sx={{
+                                                            backgroundColor:
+                                                                log.current_status === "inside"
+                                                                    ? "#e8f5e9"
+                                                                    : "inherit",
+                                                        }}
+                                                    >
+                                                        <TableCell>{log.plate_number || "-"}</TableCell>
+                                                        <TableCell>{log.vehicle_type || "-"}</TableCell>
+                                                        <TableCell>{log.driver_name || "-"}</TableCell>
+                                                        <TableCell>{log.company_name || "-"}</TableCell>
+                                                        <TableCell>{formatDateTime(log.entry_time)}</TableCell>
+                                                        <TableCell>{formatDateTime(log.exit_time)}</TableCell>
+                                                        <TableCell>{getStatusChip(log.current_status)}</TableCell>
+                                                        <TableCell>{log.notes || "-"}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )
+
                 )}
             </Paper>
         </Box>
